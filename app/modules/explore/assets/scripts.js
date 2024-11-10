@@ -20,6 +20,8 @@ function send_query() {
                 csrf_token: csrfToken,
                 query: document.querySelector('#query').value,
                 publication_type: document.querySelector('#publication_type').value,
+                start_date: document.querySelector('#start_date').value,
+                end_date: document.querySelector('#end_date').value,
                 sorting: document.querySelector('[name="sorting"]:checked').value,
             };
 
@@ -172,6 +174,13 @@ function clearFilters() {
     publicationTypeSelect.value = "any"; // replace "any" with whatever your default value is
     // publicationTypeSelect.dispatchEvent(new Event('input', {bubbles: true}));
 
+    // Reset the dates to none
+    let startDateInput = document.querySelector('#start_date');
+    startDateInput.value = "";
+
+    let endDateInput = document.querySelector('#end_date');
+    endDateInput.value = "";
+    
     // Reset the sorting option
     let sortingOptions = document.querySelectorAll('[name="sorting"]');
     sortingOptions.forEach(option => {
