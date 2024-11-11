@@ -1,5 +1,6 @@
+from sqlalchemy.orm import aliased
 from app import db
-from app.modules.dataset.models import DSMetaData, DataSet, Author
+from app.modules.dataset.models import DSMetaData, DataSet, Author, PublicationType
 from core.repositories.BaseRepository import BaseRepository
 
 
@@ -7,46 +8,70 @@ class ExploreRepository(BaseRepository):
     def __init__(self):
         super().__init__(DataSet)
 
-    def filter_datasets(self, query_string):
-        """Aplica filtros a los datasets según los parámetros en la cadena de consulta"""
-        query = db.session.query(DataSet)
+    def filter_datasets(self, query_string, sorting="newest", publication_type="any"):
+        # Crear un alias para `ds_meta_data` para evitar conflictos de alias.
+        ds_meta_data_alias = aliased(DSMetaData)
+        author_meta_data_alias = aliased(DSMetaData)  # Nuevo alias para la segunda unión
+        min_size_filter = None
+        max_size_filter = None
 
-        # Extraer filtros de la cadena de consulta
+        # Inicia la consulta, usando el alias en la unión
+        query = db.session.query(DataSet).join(ds_meta_data_alias, DataSet.ds_meta_data)
+
+        # Filtrar por tipo de publicación
+        if publication_type != "any":
+            matching_type = None
+            for member in PublicationType:
+                if member.value.lower() == publication_type:
+                    matching_type = member
+                    break
+            if matching_type is not None:
+                query = query.filter(ds_meta_data_alias.publication_type == matching_type.name)
+
+        # Procesar el filtro de `query_string`
         query_filter = query_string.strip()
 
-        # Filtrar por autor, solo si la cadena empieza con 'author:'
+        # Filtrar por autor
         if query_filter.startswith('author:'):
             author_filter = query_filter[7:].strip()
-            query = query.join(DSMetaData).join(Author).filter(Author.name.ilike(f'%{author_filter}%'))
+            query = query.join(author_meta_data_alias).join(Author).filter(Author.name.ilike(f'%{author_filter}%'))
 
-        # Filtrar por tamaño mínimo de archivo, solo si la cadena empieza con 'min_size:'
+        # Filtrar por tamaño mínimo
         elif query_filter.startswith('min_size:'):
             try:
-                min_size = int(query_filter[9:].strip())  # Extrayendo el valor después de 'min_size:'
-                query = query.filter(DataSet.get_file_total_size() >= min_size)
+                min_size_filter = int(query_filter[9:].strip())
             except ValueError:
-                pass  # Si el valor no es un número válido, no se aplica el filtro
+                min_size_filter = None
 
-        # Filtrar por tamaño máximo de archivo, solo si la cadena empieza con 'max_size:'
+        # Filtrar por tamaño máximo
         elif query_filter.startswith('max_size:'):
             try:
-                max_size = int(query_filter[9:].strip())  # Extrayendo el valor después de 'max_size:'
-                query = query.filter(DataSet.get_file_total_size() <= max_size)
+                max_size_filter = int(query_filter[9:].strip())
             except ValueError:
-                pass  # Si el valor no es un número válido, no se aplica el filtro
+                max_size_filter = None
 
-        # Filtrar por etiquetas, solo si la cadena empieza con 'tags:'
+        # Filtrar por etiquetas
         elif query_filter.startswith('tags:'):
             tags_filter = query_filter[5:].strip()
-            query = query.filter(DataSet.ds_meta_data.has(DSMetaData.tags.ilike(f'%{tags_filter}%')))
+            query = query.filter(ds_meta_data_alias.tags.ilike(f'%{tags_filter}%'))
 
-        # Filtrar por título, si la cadena no es un filtro específico
+        # Filtrar por título (consulta general)
         else:
-            # Si no es un filtro específico, buscar en el título
-            query = (db.session.query(DataSet).join(DSMetaData).filter(DSMetaData.title.ilike(f'%{query_filter}%')))
+            query = query.filter(ds_meta_data_alias.title.ilike(f'%{query_filter}%'))
 
-        # Asegurarse de que los datasets devueltos solo incluyan los que tienen el filtro aplicado correctamente
-        query = query.order_by(DataSet.created_at.desc())
+        # Ordenar resultados
+        if sorting == "oldest":
+            query = query.order_by(DataSet.created_at.asc())
+        else:
+            query = query.order_by(DataSet.created_at.desc())
 
-        # Devolver los datasets filtrados
-        return query.all()
+        # Ejecutar la consulta y obtener todos los resultados
+        results = query.all()
+        if min_size_filter is not None:
+            results = [ds for ds in results if ds.get_file_total_size() >= min_size_filter]
+
+        # Filtrar por tamaño máximo después de obtener los resultados
+        if max_size_filter is not None:
+            results = [ds for ds in results if ds.get_file_total_size() <= max_size_filter]
+
+        return results

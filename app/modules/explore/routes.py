@@ -14,25 +14,11 @@ def index():
     if request.method == 'POST':
         criteria = request.get_json()
 
-        # Procesamos el 'query' para extraer los filtros
-        query_string = criteria.get("query", "")  # Aquí obtenemos el 'query' como string
+        # Extrae criterios de filtro individuales
+        query_string = criteria.get("query", "")
+        sorting = criteria.get("sorting", "newest")
+        publication_type = criteria.get("publication_type", "any")
 
-        # Llamamos al servicio de exploración con el query_string procesado
-        datasets = ExploreService().filter(query_string)
+        # Llama al servicio de exploración con los parámetros
+        datasets = ExploreService().filter(query_string, sorting, publication_type)
         return jsonify([dataset.to_dict() for dataset in datasets])
-
-
-def process_query(query):
-    """
-    Procesa el 'query' para convertirlo en filtros utilizables.
-    Por ejemplo, 'author:pepe' se convierte en {'author': 'pepe'}.
-    """
-    filters = {}
-    query_parts = query.split()
-
-    for part in query_parts:
-        if ':' in part:
-            key, value = part.split(":", 1)
-            filters[key] = value
-
-    return filters
