@@ -1,10 +1,12 @@
 from core.seeders.BaseSeeder import BaseSeeder
 
 
-class FakeNodoSeeder(BaseSeeder):
+class FakenodoSeeder(BaseSeeder):
 
-    def run(self): 
+    def run(self):
 
-        data = []
+        data = [
+            # Create any Model object you want to make seed
+        ]
 
         self.seed(data)

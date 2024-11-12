@@ -20,7 +20,7 @@ load_dotenv()
 
 class FakenodoService(BaseService):
 
-    def _init_(self):
+    def __init__(self):
         self.deposition_repository = DepositionRepository()
 
     def create_new_deposition(self, dataset: DataSet) -> dict:
