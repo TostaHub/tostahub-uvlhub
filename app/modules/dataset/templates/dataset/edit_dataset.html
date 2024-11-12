@@ -1,0 +1,19 @@
+<!-- app/templates/dataset/edit_dataset.html -->
+<form method="POST" action="{{ url_for('dataset.edit_dataset', dataset_id=dataset.id) }}">
+    {{ form.hidden_tag() }}
+    <div>
+        <label for="description">Description</label>
+        {{ form.description(size=60) }}
+    </div>
+    <div>
+        <label for="publication_type">Publication Type</label>
+        {{ form.publication_type() }}  <!-- Aquí generamos el dropdown -->
+    </div>
+    <div>
+        <label for="tags">Tags</label>
+        {{ form.tags(size=60) }}  <!-- Campo para editar tags -->
+    </div>
+    <div>
+        <button type="submit">Save Changes</button>
+    </div>
+</form>

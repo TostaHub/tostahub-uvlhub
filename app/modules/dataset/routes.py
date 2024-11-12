@@ -6,8 +6,12 @@ import tempfile
 import uuid
 from datetime import datetime, timezone
 from zipfile import ZipFile
+from app.modules.dataset.forms import EditDatasetForm
+
+
 
 from flask import (
+    flash,
     redirect,
     render_template,
     request,
@@ -21,7 +25,8 @@ from flask_login import login_required, current_user
 
 from app.modules.dataset.forms import DataSetForm
 from app.modules.dataset.models import (
-    DSDownloadRecord
+    DSDownloadRecord,
+    PublicationType
 )
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.services import (
@@ -278,3 +283,38 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route("/dataset/<int:dataset_id>/", methods=["GET"])
+def view_dataset(dataset_id):
+    # Obtén el dataset por su ID
+    dataset = dataset_service.get_or_404(dataset_id)
+    
+    # Renderiza la plantilla con los datos del dataset
+    return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route('/dataset/<int:dataset_id>/edit', methods=['GET', 'POST'])
+def edit_dataset(dataset_id):
+    dataset = DataSetService().get_by_id(dataset_id)
+    form = EditDatasetForm()
+
+    if form.validate_on_submit():
+        # Asignamos los valores del formulario al modelo DSMetaData
+        dataset.ds_meta_data.description = form.description.data
+        dataset.ds_meta_data.publication_type = PublicationType[form.publication_type.data]  # Asignamos el valor seleccionado del enum
+        dataset.ds_meta_data.tags = form.tags.data  # Asignamos el valor de tags
+
+        # Actualiza el dataset
+        DataSetService().update(dataset)  # Aquí actualizamos el dataset en la base de datos
+
+        flash("Dataset updated successfully", "success")
+        return redirect(url_for('dataset.view_dataset', dataset_id=dataset_id))  # Redirige a la vista del dataset
+
+    # Si el formulario se carga para edición, pre-poblar con los valores existentes
+    form.description.data = dataset.ds_meta_data.description
+    form.publication_type.data = dataset.ds_meta_data.publication_type.name  # Pre-poblar el campo 'publication_type' con el valor correcto
+    form.tags.data = dataset.ds_meta_data.tags  # Pre-poblar el campo 'tags'
+
+    return render_template('dataset/edit_dataset.html', form=form, dataset=dataset)
+

@@ -4,6 +4,7 @@ import hashlib
 import shutil
 from typing import Optional
 import uuid
+from app import db;
 
 from flask import request
 
@@ -48,6 +49,15 @@ class DataSetService(BaseService):
         self.hubfilerepository = HubfileRepository()
         self.dsviewrecord_repostory = DSViewRecordRepository()
         self.hubfileviewrecord_repository = HubfileViewRecordRepository()
+
+    # Método de actualización para el dataset
+    def update(self, dataset):
+        try:
+            # Aquí modificamos los valores de los metadatos del dataset
+            db.session.commit()  # Guardamos los cambios en la base de datos
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def move_feature_models(self, dataset: DataSet):
         current_user = AuthenticationService().get_authenticated_user()
