@@ -8,6 +8,13 @@ from core.repositories.BaseRepository import BaseRepository
 from datetime import datetime
 
 
+def safe_parse_date(date, date_format, default_date=None):
+    try:
+        return datetime.strptime(date, date_format)
+    except ValueError:
+        return default_date
+
+
 class ExploreRepository(BaseRepository):
     def __init__(self):
         super().__init__(DataSet)
@@ -59,17 +66,17 @@ class ExploreRepository(BaseRepository):
 
         date_format = '%Y-%m-%d'
         if start_date:
-            date_obj = datetime.strptime(start_date, date_format)
+            date_obj = safe_parse_date(start_date, date_format)
             datasets = datasets.filter(func.date(DataSet.created_at) >= date_obj)
 
         if end_date:
-            date_obj = datetime.strptime(end_date, date_format)
+            date_obj = safe_parse_date(end_date, date_format)
             datasets = datasets.filter(func.date(DataSet.created_at) <= date_obj)
 
-        if min_uvl:
+        if min_uvl.isdigit():
             datasets = datasets.group_by(DataSet.id).having(func.count(Hubfile.id) >= int(min_uvl))
 
-        if max_uvl:
+        if max_uvl.isdigit():
             datasets = datasets.group_by(DataSet.id).having(func.count(Hubfile.id) <= int(max_uvl))
 
         # Order by created_at
