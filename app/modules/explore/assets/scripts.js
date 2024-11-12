@@ -22,6 +22,8 @@ function send_query() {
                 publication_type: document.querySelector('#publication_type').value,
                 start_date: document.querySelector('#start_date').value,
                 end_date: document.querySelector('#end_date').value,
+                min_uvl: document.querySelector('#min_uvl').value,
+                max_uvl: document.querySelector('#max_uvl').value,
                 sorting: document.querySelector('[name="sorting"]:checked').value,
             };
 
@@ -180,6 +182,13 @@ function clearFilters() {
 
     let endDateInput = document.querySelector('#end_date');
     endDateInput.value = "";
+    
+    // Reset the number of uvl models filters
+    let minUvlInput = document.querySelector('#min_uvl');
+    minUvlInput.value = "";
+
+    let maxUvlInput = document.querySelector('#max_uvl');
+    maxUvlInput.value = "";
     
     // Reset the sorting option
     let sortingOptions = document.querySelectorAll('[name="sorting"]');
