@@ -6,9 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-	Thank you for your interest in improving TostaHub!
-
-	Before continuing, please verify that there is [no bug report](https://github.com/TostaHub/tostahub-uvlhub/issues) that matches yours.
+        Thanks for taking the time to fill out this bug report! Before continuing, please verify that there is [no bug report](https://github.com/TostaHub/tostahub-uvlhub/issues) that matches yours.
   - type: textarea
     attributes:
       label: Description
