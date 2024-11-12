@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose new features. 
+labels: [enhancement]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+	Thank you for your interest in improving TostaHub!
+
+	Before continuing, please verify that there is [no feature report](https://github.com/TostaHub/tostahub-uvlhub/issues) that matches yours.
+  - type: textarea
+    attributes:
+      label: Description
+      description: A clear and concise description of the problem.
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Modules
+      description: Add the related modules to the request if you can.
+      multiple: true
+      options:
+        - Auth
+        - Public
+        - Teams
+        - Webhook
+        - Profile
+        - Dataset
+        - Explore
+        - Flamapy
+        - Hubfile
+        - Feature Model
+        - Fakenodo
+        - New module
+    validations:
+      required: false
