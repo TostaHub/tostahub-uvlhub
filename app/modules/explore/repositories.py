@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from sqlalchemy.orm import aliased
 from app import db
 from app.modules.dataset.models import DSMetaData, DataSet, Author, PublicationType
@@ -8,7 +9,7 @@ class ExploreRepository(BaseRepository):
     def __init__(self):
         super().__init__(DataSet)
 
-    def filter_datasets(self, query_string, sorting="newest", publication_type="any"):
+    def filter_datasets(self, query_string, sorting="newest", tags=[], publication_type="any"):
         # Crear un alias para `ds_meta_data` para evitar conflictos de alias.
         ds_meta_data_alias = aliased(DSMetaData)
         author_meta_data_alias = aliased(DSMetaData)  # Nuevo alias para la segunda unión
@@ -55,9 +56,14 @@ class ExploreRepository(BaseRepository):
             tags_filter = query_filter[5:].strip()
             query = query.filter(ds_meta_data_alias.tags.ilike(f'%{tags_filter}%'))
 
-        # Filtrar por título (consulta general)
+        # Filtrar por título o tag(consulta general)
         else:
-            query = query.filter(ds_meta_data_alias.title.ilike(f'%{query_filter}%'))
+            query = query.filter(
+                or_(
+                    ds_meta_data_alias.title.ilike(f"%{query_filter}%"),
+                    ds_meta_data_alias.tags.ilike(f"%{query_filter}%")
+                )
+            )
 
         # Ordenar resultados
         if sorting == "oldest":
@@ -67,6 +73,8 @@ class ExploreRepository(BaseRepository):
 
         # Ejecutar la consulta y obtener todos los resultados
         results = query.all()
+
+        # Filtrar por tamaño mínimo después de obtener los resultados
         if min_size_filter is not None:
             results = [ds for ds in results if ds.get_file_total_size() >= min_size_filter]
 
