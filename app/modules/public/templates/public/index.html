@@ -83,7 +83,19 @@
                             </div>
 
                         </div>
-
+                        <div class="row mb-2">
+                            <div class ="col-md-4 col-12">
+                                <span class="text-center">Rating</span>
+                            </div>
+                            <div class="col-md-8 col-12 d-flex align-items-center">
+                                <div id="star-rating-{{ dataset.id}}" class="stars" style="color: gold;">
+                                    {% for i in range(1,6) %}
+                                    <span data-value="{{ i }}">*</span>
+                                    {% endfor %}
+                                </div>
+                                <span id="advange-rating-{{ dataset.id }}" class="ms-2"></span>
+                            </div>
+                        </div>
                         <div class="row  mt-4">
                             <div class="col-12">
                                 <a href="{{ dataset.get_uvlhub_doi() }}" class="btn btn-outline-primary btn-sm"
@@ -282,5 +294,56 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('public.scripts') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Generar una lista de IDs en Jinja
+        const datasetIds = {{ datasets|map(attribute='id')|list|default([])|tojson }};
+        
+        // Validar que la lista no esté vacía antes de iterar
+        if (Array.isArray(datasetIds) && datasetIds.length > 0) {
+            datasetIds.forEach(datasetId => {
+                updateAverageRating(datasetId);
+            });
+        } else {
+            console.warn('No datasets found to update ratings.');
+        }
+    });
+        
+    function updateAverageRating(datasetId) {
+        fetch(`/datasets/${datasetId}/average-rating`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Redondear el valor de la calificación promedio
+                const ratingValue = data.average_rating.toFixed(1);
+
+                // Actualizar el texto del promedio
+                const ratingElement = document.getElementById('average-rating-' + datasetId);
+                if (ratingElement) {
+                    ratingElement.innerText = ratingValue;
+                }
+
+                // Actualizar el color de las estrellas
+                const starContainer = document.getElementById('star-rating-' + datasetId);
+                if (starContainer) {
+                    highlightStars(starContainer, Math.round(data.average_rating));
+                }
+            })
+            .catch(error => console.error('Error fetching average rating:', error));
+    }
+
+    function highlightStars(container, rating) {
+        container.querySelectorAll('span').forEach(star => {
+            const starValue = parseInt(star.getAttribute('data-value'), 10);
+            star.style.color = starValue <= rating ? '#FFD700' : '#ddd'; // Cambia el color de la estrella
+        });
+    }
+</script>
+
+<script src="{{ url_for('public.scripts') }}"></script>
 {% endblock %}
