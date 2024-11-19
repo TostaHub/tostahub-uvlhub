@@ -6,5 +6,6 @@ class FakenodoRepository(BaseRepository):
     def __init__(self):
         super().__init__(Fakenodo)
 
-        def create_new_deposition(self, dep_metadata):
-            return self.create(dep_metadata=dep_metadata)
+    def create_new_deposition(self, dep_metadata):
+        return self.create(dep_metadata=dep_metadata)
+
