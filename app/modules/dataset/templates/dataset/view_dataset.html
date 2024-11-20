@@ -63,8 +63,13 @@
                             Uploaded by
                         </span>
                     </div>
-                    <div class="col-md-8 col-12">
+                    <!-- #region div class="col-md-8 col-12">
                         <a href="#">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
+                    </div>-->
+                    <div class="col-md-8 col-12">
+                        <a href="/dataset/user_id/{{ dataset.user.id }}">
+                            {{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}
+                        </a>
                     </div>
 
                 </div>

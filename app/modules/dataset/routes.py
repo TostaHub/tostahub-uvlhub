@@ -117,6 +117,16 @@ def list_dataset():
         local_datasets=dataset_service.get_unsynchronized(current_user.id),
     )
 
+@dataset_bp.route("/dataset/user_id/<int:user_id>", methods=["GET"])
+def user_dataset(user_id):
+    #dataset = dataset_service.get_or_404(dataset_id)
+    return render_template(
+        "dataset/user_datasets.html",
+        datasets=dataset_service.get_synchronized(user_id),
+        local_datasets=dataset_service.get_unsynchronized(user_id),
+        
+    )
+
 
 @dataset_bp.route("/dataset/file/upload", methods=["POST"])
 @login_required
