@@ -61,11 +61,18 @@ class DSMetaData(db.Model):
     description = db.Column(db.Text, nullable=False)
     publication_type = db.Column(SQLAlchemyEnum(PublicationType), nullable=False)
     publication_doi = db.Column(db.String(120))
+    rating = db.Column(db.Float, default=0.0)
     dataset_doi = db.Column(db.String(120))
     tags = db.Column(db.String(120))
     ds_metrics_id = db.Column(db.Integer, db.ForeignKey('ds_metrics.id'))
     ds_metrics = db.relationship('DSMetrics', uselist=False, backref='ds_meta_data', cascade="all, delete")
     authors = db.relationship('Author', backref='ds_meta_data', lazy=True, cascade="all, delete")
+
+    def update_rating(self):
+        total = sum(rating.rating for rating in self.rating)
+        count = len(self.ratings)
+        self.rating = total/count if count > 0 else 0
+        db.session.commit()
 
 
 class DataSet(db.Model):
@@ -118,6 +125,7 @@ class DataSet(db.Model):
             'authors': [author.to_dict() for author in self.ds_meta_data.authors],
             'publication_type': self.get_cleaned_publication_type(),
             'publication_doi': self.ds_meta_data.publication_doi,
+            'rating': self.ds_meta_data.rating,
             'dataset_doi': self.ds_meta_data.dataset_doi,
             'tags': self.ds_meta_data.tags.split(",") if self.ds_meta_data.tags else [],
             'url': self.get_uvlhub_doi(),
@@ -164,3 +172,22 @@ class DOIMapping(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dataset_doi_old = db.Column(db.String(120))
     dataset_doi_new = db.Column(db.String(120))
+
+
+class DSRating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ds_meta_data_id = db.Column(db.Integer, db.ForeignKey('ds_meta_data.id'), nullable=False)
+    rating = db.Column(db.Float, default=0, nullable=False)
+    rated_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    ds_meta_data = db.relationship('DSMetaData', backref=db.backref('ratings', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'ds_meta_data_id': self.ds_meta_data_id,
+            'rating': self.rating,
+            'rated_date': self.rated_date
+        }

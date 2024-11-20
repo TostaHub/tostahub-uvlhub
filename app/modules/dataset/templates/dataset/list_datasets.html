@@ -134,7 +134,7 @@
 
         // Función para actualizar el promedio de calificación en el frontend
         function updateAverageRating(datasetId) {
-            fetch(/datasets/${datasetId}/average-rating)
+            fetch(`/datasets/${datasetId}/average-rating`)
             .then(response => response.json())
             .then(data => {
                 const averageRating = data.average_rating.toFixed(1);
@@ -154,3 +154,4 @@
 
 
 {% endblock %}
+
