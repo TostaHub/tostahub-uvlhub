@@ -12,6 +12,8 @@ from uvl.UVLCustomLexer import UVLCustomLexer
 from uvl.UVLPythonParser import UVLPythonParser
 from antlr4.error.ErrorListener import ErrorListener
 
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,16 +76,30 @@ def valid(file_id):
 @flamapy_bp.route('/flamapy/to_glencoe/<int:file_id>', methods=['GET'])
 def to_glencoe(file_id):
     temp_file = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
+    
     try:
         hubfile = HubfileService().get_or_404(file_id)
-        fm = UVLReader(hubfile.get_path()).transform()
-        GlencoeWriter(temp_file.name, fm).transform()
+        file_name = f"file{file_id}.uvl"
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
 
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+        
+        fm1 = UVLReader(file_path).transform()
+        GlencoeWriter(temp_file.name, fm1).transform()
         # Return the file in the response
-        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_glencoe.txt')
-    finally:
-        # Clean up the temporary file
-        os.remove(temp_file.name)
+        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_glencoe.txt',mimetype='text/plain')
+    except NotFound as e:
+        # Manejar el caso en que el archivo no se encuentra
+        # Solo devolver el mensaje sin el "404 Not Found" al principio
+        return jsonify({"error": str(e).replace("404 Not Found: ", "")}), 404
+    except Exception as e:
+        # Manejar cualquier otro error inesperado
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+
+
+    
 
 
 @flamapy_bp.route('/flamapy/to_splot/<int:file_id>', methods=['GET'])
@@ -91,14 +107,24 @@ def to_splot(file_id):
     temp_file = tempfile.NamedTemporaryFile(suffix='.splx', delete=False)
     try:
         hubfile = HubfileService().get_by_id(file_id)
-        fm = UVLReader(hubfile.get_path()).transform()
+        file_name = f"file{file_id}.uvl"
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+
+        fm = UVLReader(file_path).transform()
         SPLOTWriter(temp_file.name, fm).transform()
 
         # Return the file in the response
-        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_splot.txt')
-    finally:
-        # Clean up the temporary file
-        os.remove(temp_file.name)
+        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_splot.txt',mimetype='text/plain')
+    except NotFound as e:
+        # Manejar el caso en que el archivo no se encuentra
+        # Solo devolver el mensaje sin el "404 Not Found" al principio
+        return jsonify({"error": str(e).replace("404 Not Found: ", "")}), 404
+    except Exception as e:
+        # Manejar cualquier otro error inesperado
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
 
 @flamapy_bp.route('/flamapy/to_cnf/<int:file_id>', methods=['GET'])
@@ -106,12 +132,23 @@ def to_cnf(file_id):
     temp_file = tempfile.NamedTemporaryFile(suffix='.cnf', delete=False)
     try:
         hubfile = HubfileService().get_by_id(file_id)
-        fm = UVLReader(hubfile.get_path()).transform()
+        file_name = f"file{file_id}.uvl"
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
+
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+
+        fm = UVLReader(file_path).transform()
         sat = FmToPysat(fm).transform()
         DimacsWriter(temp_file.name, sat).transform()
 
         # Return the file in the response
-        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_cnf.txt')
-    finally:
-        # Clean up the temporary file
-        os.remove(temp_file.name)
+        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_cnf.txt',mimetype='text/plain')
+    except NotFound as e:
+        # Manejar el caso en que el archivo no se encuentra
+        # Solo devolver el mensaje sin el "404 Not Found" al principio
+        return jsonify({"error": str(e).replace("404 Not Found: ", "")}), 404
+    except Exception as e:
+        # Manejar cualquier otro error inesperado
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
