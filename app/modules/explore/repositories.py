@@ -9,7 +9,7 @@ class ExploreRepository(BaseRepository):
     def __init__(self):
         super().__init__(DataSet)
 
-    def filter_datasets(self, query_string, sorting="newest", tags=[], publication_type="any"):
+    def filter(self, query_string, sorting="newest", tags=[], publication_type="any"):
         # Crear un alias para `ds_meta_data` para evitar conflictos de alias.
         ds_meta_data_alias = aliased(DSMetaData)
         author_meta_data_alias = aliased(DSMetaData)  # Nuevo alias para la segunda unión

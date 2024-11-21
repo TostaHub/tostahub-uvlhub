@@ -15,10 +15,10 @@ def index():
         criteria = request.get_json()
 
         # Extrae criterios de filtro individuales
-        query_string = criteria.get("query", "")
+        query = criteria.get("query", "")
         sorting = criteria.get("sorting", "newest")
         publication_type = criteria.get("publication_type", "any")
 
         # Llama al servicio de exploración con los parámetros
-        datasets = ExploreService().filter(query_string, sorting, publication_type)
+        datasets = ExploreService().filter(query, sorting, publication_type)
         return jsonify([dataset.to_dict() for dataset in datasets])
