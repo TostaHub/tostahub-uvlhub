@@ -203,7 +203,7 @@ class DOIMappingService(BaseService):
 class DSRatingService(BaseService):
     def __init__(self):
         super().__init__(DSRatingRepository())
-    
+
     def add_or_update_rating(self, dsmetadata_id: int, user_id: int, rating_value: int) -> DSRating:
         rating = self.repository.get_user_rating(dsmetadata_id, user_id)
         if rating:
@@ -211,14 +211,19 @@ class DSRatingService(BaseService):
             rating.rating = rating_value
         else:
             print("Valor de rating en el servicio:", rating_value)
-            rating = self.repository.create(commit=False, ds_meta_data_id=dsmetadata_id, user_id=user_id, rating=rating_value)
+            rating = self.repository.create(
+             commit=False,
+             ds_meta_data_id=dsmetadata_id,
+             user_id=user_id,
+             rating=rating_value
+            )
             print("Valor de rating en el servicio:", rating.rating)
         self.repository.session.commit()
         return rating
-    
+
     def get_dataset_average_rating(self, dsmetadata_id: int) -> float:
         return self.repository.get_average_rating(dsmetadata_id)
-    
+
     def get_total_ratings(self, dsmetadata_id: int) -> int:
         return self.repository.count_ratings(dsmetadata_id)
 

@@ -180,7 +180,7 @@ class DSRating(db.Model):
     ds_meta_data_id = db.Column(db.Integer, db.ForeignKey('ds_meta_data.id'), nullable=False)
     rating = db.Column(db.Float, default=0, nullable=False)
     rated_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    
+
     ds_meta_data = db.relationship('DSMetaData', backref=db.backref('ratings', lazy=True))
 
     def to_dict(self):
