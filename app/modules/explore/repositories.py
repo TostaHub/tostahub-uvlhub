@@ -1,15 +1,27 @@
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import aliased
 from app import db
-from app.modules.dataset.models import DSMetaData, DataSet, Author, PublicationType
+from app.modules.dataset.models import Author, DSMetaData, DataSet, PublicationType
+from app.modules.featuremodel.models import FeatureModel
+from app.modules.hubfile.models import Hubfile
 from core.repositories.BaseRepository import BaseRepository
+from datetime import datetime
+
+
+def safe_parse_date(date, date_format, default_date=None):
+    try:
+        return datetime.strptime(date, date_format)
+    except ValueError:
+        return default_date
 
 
 class ExploreRepository(BaseRepository):
     def __init__(self):
         super().__init__(DataSet)
 
-    def filter(self, query_string, sorting="newest", tags=[], publication_type="any"):
+    def filter(self, query_string, sorting="newest", publication_type="any",
+               start_date="", end_date="", min_uvl="", max_uvl="", **kwargs):
+
         # Crear un alias para `ds_meta_data` para evitar conflictos de alias.
         ds_meta_data_alias = aliased(DSMetaData)
         author_meta_data_alias = aliased(DSMetaData)  # Nuevo alias para la segunda unión
@@ -64,6 +76,25 @@ class ExploreRepository(BaseRepository):
                     ds_meta_data_alias.tags.ilike(f"%{query_filter}%")
                 )
             )
+
+        date_format = '%Y-%m-%d'
+        if start_date:
+            date_obj = safe_parse_date(start_date, date_format)
+            query = query.filter(func.date(DataSet.created_at) >= date_obj)
+
+        if end_date:
+            date_obj = safe_parse_date(end_date, date_format)
+            query = query.filter(func.date(DataSet.created_at) <= date_obj)
+
+        # Realizamos la unión con Hubfile a través de FeatureModel
+        query = query.join(FeatureModel, FeatureModel.data_set_id == DataSet.id)  # Unión con FeatureModel
+        query = query.join(Hubfile, Hubfile.feature_model_id == FeatureModel.id)  # Unión con Hubfile
+
+        if min_uvl.isdigit():
+            query = query.group_by(DataSet.id).having(func.count(Hubfile.id) >= int(min_uvl))
+
+        if max_uvl.isdigit():
+            query = query.group_by(DataSet.id).having(func.count(Hubfile.id) <= int(max_uvl))
 
         # Ordenar resultados
         if sorting == "oldest":
