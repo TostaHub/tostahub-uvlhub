@@ -1,16 +1,27 @@
 import re
-from sqlalchemy import any_, or_
+from sqlalchemy import any_, or_, func
 import unidecode
 from app.modules.dataset.models import Author, DSMetaData, DataSet, PublicationType
 from app.modules.featuremodel.models import FMMetaData, FeatureModel
+from app.modules.hubfile.models import Hubfile
 from core.repositories.BaseRepository import BaseRepository
+from datetime import datetime
+
+
+def safe_parse_date(date, date_format, default_date=None):
+    try:
+        return datetime.strptime(date, date_format)
+    except ValueError:
+        return default_date
 
 
 class ExploreRepository(BaseRepository):
     def __init__(self):
         super().__init__(DataSet)
 
-    def filter(self, query="", sorting="newest", publication_type="any", tags=[], **kwargs):
+    def filter(self, query="", sorting="newest", publication_type="any", tags=[],
+               start_date="", end_date="", min_uvl="", max_uvl="", **kwargs):
+
         # Normalize and remove unwanted characters
         normalized_query = unidecode.unidecode(query).lower()
         cleaned_query = re.sub(r'[,.":\'()\[\]^;!¡¿?]', "", normalized_query)
@@ -35,6 +46,7 @@ class ExploreRepository(BaseRepository):
             .join(DSMetaData.authors)
             .join(DataSet.feature_models)
             .join(FeatureModel.fm_meta_data)
+            .join(FeatureModel.files)
             .filter(or_(*filters))
             .filter(DSMetaData.dataset_doi.isnot(None))  # Exclude datasets with empty dataset_doi
         )
@@ -51,6 +63,21 @@ class ExploreRepository(BaseRepository):
 
         if tags:
             datasets = datasets.filter(DSMetaData.tags.ilike(any_(f"%{tag}%" for tag in tags)))
+
+        date_format = '%Y-%m-%d'
+        if start_date:
+            date_obj = safe_parse_date(start_date, date_format)
+            datasets = datasets.filter(func.date(DataSet.created_at) >= date_obj)
+
+        if end_date:
+            date_obj = safe_parse_date(end_date, date_format)
+            datasets = datasets.filter(func.date(DataSet.created_at) <= date_obj)
+
+        if min_uvl.isdigit():
+            datasets = datasets.group_by(DataSet.id).having(func.count(Hubfile.id) >= int(min_uvl))
+
+        if max_uvl.isdigit():
+            datasets = datasets.group_by(DataSet.id).having(func.count(Hubfile.id) <= int(max_uvl))
 
         # Order by created_at
         if sorting == "oldest":

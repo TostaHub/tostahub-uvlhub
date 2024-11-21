@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function send_query() {
+    setInitialNumUvlFilterMaxMin()
+    setInitialDatesMaxMin()
 
     console.log("send query...")
 
@@ -16,10 +18,24 @@ function send_query() {
         filter.addEventListener('input', () => {
             const csrfToken = document.getElementById('csrf_token').value;
 
+            const startDate = document.querySelector('#start_date');
+            const endDate = document.querySelector('#end_date');
+            
+            setDatesMaxMin(filter, startDate, endDate);
+
+            const minUvl = document.querySelector('#min_uvl');
+            const maxUvl = document.querySelector('#max_uvl');
+            
+            setNumUvlFilterMaxMin(filter, minUvl, maxUvl);
+
             const searchCriteria = {
                 csrf_token: csrfToken,
                 query: document.querySelector('#query').value,
                 publication_type: document.querySelector('#publication_type').value,
+                start_date: startDate.value,
+                end_date: endDate.value,
+                min_uvl: minUvl.value,
+                max_uvl: maxUvl.value,
                 sorting: document.querySelector('[name="sorting"]:checked').value,
             };
 
@@ -134,6 +150,85 @@ function send_query() {
     });
 }
 
+function setInitialDatesMaxMin() {
+    const startDateInput = document.querySelector('#start_date');
+    const endDateInput = document.querySelector('#end_date');
+    const today = new Date();
+
+    const startDate = new Date(startDateInput.value);
+    if (!isNaN(startDate)) {
+        const date = today > startDate ? startDate : today
+        endDateInput.min = dateToString(date);
+    } else {
+        endDateInput.min = ""
+    }
+
+    const endDate = new Date(endDateInput.value);
+    if (!isNaN(endDate)) {
+        const date = today > endDate ? endDate : today
+        startDateInput.max = dateToString(date);    
+    } else {
+        startDateInput.max = dateToString(today);
+    }
+}
+
+function setDatesMaxMin(filter, startDateInput, endDateInput) {
+    if (filter.id === startDateInput.id) {
+        const startDate = new Date(startDateInput.value);
+        if (isNaN(startDate)) {
+            endDateInput.min = "";
+        } else {
+            endDateInput.min = dateToString(startDate);
+        }
+    } else if (filter.id === endDateInput.id) {
+        const endDate = new Date(endDateInput.value);
+        const today = new Date();
+        if (isNaN(endDate)) {
+            startDateInput.max = dateToString(today);
+        } else {
+            const date = today > endDate ? endDate : today
+            startDateInput.max = dateToString(date);
+        }
+    }
+}
+
+function dateToString(date) {
+    return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+}
+
+function setInitialNumUvlFilterMaxMin() {
+    const minUvl = document.querySelector('#min_uvl');
+    const maxUvl = document.querySelector('#max_uvl');
+
+    const numMin = parseInt(minUvl.value);
+    if (!isNaN(numMin)) {
+        maxUvl.min = numMin
+    }
+
+    const numMax = parseInt(maxUvl.value);
+    if (!isNaN(numMax)) {
+        minUvl.max = numMax
+    }
+}
+
+function setNumUvlFilterMaxMin(filter, minUvl, maxUvl) {
+    if (filter.id === minUvl.id) {
+        const num = parseInt(minUvl.value);
+        if (isNaN(num)) {
+            maxUvl.min = 0;
+        } else {
+            maxUvl.min = num;
+        }
+    } else if (filter.id === maxUvl.id) {
+        const num = parseInt(maxUvl.value);
+        if (isNaN(num)) {
+            minUvl.max = ""; // We suppose that more than this value is not feasible
+        } else {
+            minUvl.max = num;
+        }
+    } 
+}
+
 function formatDate(dateString) {
     const options = {day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: 'numeric'};
     const date = new Date(dateString);
@@ -172,6 +267,20 @@ function clearFilters() {
     publicationTypeSelect.value = "any"; // replace "any" with whatever your default value is
     // publicationTypeSelect.dispatchEvent(new Event('input', {bubbles: true}));
 
+    // Reset the dates to none
+    let startDateInput = document.querySelector('#start_date');
+    startDateInput.value = "";
+
+    let endDateInput = document.querySelector('#end_date');
+    endDateInput.value = "";
+    
+    // Reset the number of uvl models filters
+    let minUvlInput = document.querySelector('#min_uvl');
+    minUvlInput.value = "";
+
+    let maxUvlInput = document.querySelector('#max_uvl');
+    maxUvlInput.value = "";
+    
     // Reset the sorting option
     let sortingOptions = document.querySelectorAll('[name="sorting"]');
     sortingOptions.forEach(option => {
@@ -181,6 +290,9 @@ function clearFilters() {
 
     // Perform a new search with the reset filters
     queryInput.dispatchEvent(new Event('input', {bubbles: true}));
+
+    setInitialNumUvlFilterMaxMin()
+    setInitialDatesMaxMin()
 }
 
 document.addEventListener('DOMContentLoaded', () => {
