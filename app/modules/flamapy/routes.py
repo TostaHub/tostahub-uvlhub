@@ -141,7 +141,7 @@ def to_cnf(file_id):
         DimacsWriter(temp_file.name, sat).transform()
 
         # Return the file in the response
-        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_cnf.txt', 
+        return send_file(temp_file.name, as_attachment=True, download_name=f'{hubfile.name}_cnf.txt',
                          mimetype='text/plain')
     except NotFound as e:
         # Manejar el caso en que el archivo no se encuentra
