@@ -78,10 +78,10 @@ def to_glencoe(file_id):
     temp_file = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
     try:
         hubfile = HubfileService().get_or_404(file_id)
-        file_name = f"file{file_id}.uvl"
+        file_name = hubfile.name
         directory_path = "app/modules/dataset/uvl_examples"
         file_path = os.path.join(directory_path, file_name)
-
+        # Agrega un mensaje de depuración
         if not os.path.isfile(file_path):
             raise NotFound(f"File {file_name} not found")
         fm1 = UVLReader(file_path).transform()
@@ -103,7 +103,7 @@ def to_splot(file_id):
     temp_file = tempfile.NamedTemporaryFile(suffix='.splx', delete=False)
     try:
         hubfile = HubfileService().get_by_id(file_id)
-        file_name = f"file{file_id}.uvl"
+        file_name = hubfile.name
         directory_path = "app/modules/dataset/uvl_examples"
         file_path = os.path.join(directory_path, file_name)
         if not os.path.isfile(file_path):
@@ -129,7 +129,7 @@ def to_cnf(file_id):
     temp_file = tempfile.NamedTemporaryFile(suffix='.cnf', delete=False)
     try:
         hubfile = HubfileService().get_by_id(file_id)
-        file_name = f"file{file_id}.uvl"
+        file_name = hubfile.name
         directory_path = "app/modules/dataset/uvl_examples"
         file_path = os.path.join(directory_path, file_name)
 
