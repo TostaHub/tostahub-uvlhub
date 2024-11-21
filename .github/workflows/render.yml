@@ -7,6 +7,7 @@ on:
     pull_request:
       branches:
         - main
+        - develop
 
 jobs:
 
@@ -59,7 +60,15 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
-      - name: Deploy to Render
+      - name: Deploy to Render (Develop)
+        if: github.ref == 'refs/heads/develop'
+        env:
+          deploy_url: ${{ secrets.RENDER_DEPLOY_DEVELOP_HOOK_URL }}
+        run: |
+          curl "$deploy_url"
+  
+      - name: Deploy to Render (Main)
+        if: github.ref == 'refs/heads/main'
         env:
           deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
