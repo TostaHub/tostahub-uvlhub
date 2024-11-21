@@ -8,8 +8,6 @@ from app.modules.hubfile.models import HubfileDownloadRecord, HubfileViewRecord
 from app.modules.hubfile.services import HubfileDownloadRecordService, HubfileService
 from flask import abort, send_from_directory
 from app import db
-
-
 from flask import jsonify, current_app
 import traceback
 
@@ -18,14 +16,17 @@ import traceback
 def download_file(file_id):
     try:
         # Intentamos obtener el archivo del servicio
-        file = HubfileService().get_or_404(file_id)  
+        file = HubfileService().get_or_404(file_id)
         # Configuración de la ruta de descarga
         filename = file.name
         directory_path = "app/modules/dataset/uvl_examples/"
         parent_directory_path = os.path.dirname(current_app.root_path)
         file_path = os.path.join(parent_directory_path, directory_path)
 
-        
+        # Verifica si el archivo existe
+        if not os.path.exists(file_path):
+            abort(404)
+
         # Si el archivo existe, proceder con el proceso de descarga
         user_cookie = request.cookies.get("file_download_cookie", str(uuid.uuid4()))
         existing_record = HubfileDownloadRecord.query.filter_by(
@@ -56,10 +57,6 @@ def download_file(file_id):
             "error": "An unexpected error occurred",
             "message": str(e)
         }), 500
-
-
-
-    
 
 
 @hubfile_bp.route('/file/view/<int:file_id>', methods=['GET'])
