@@ -70,3 +70,49 @@ jobs:
           deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           curl "$deploy_url"
+  
+      - name: Monitor Develop Deployment Status
+        env:
+          API_KEY: ${{ secrets.RENDER_DEVELOP_API_KEY }}
+          SERVICE_ID: ${{ secrets.RENDER_DEVELOP_SERVICE_ID }}
+        run: |
+          STATUS=""
+          while [ "$STATUS" != "live" ]; do
+            DEPLOY_DATA=$(curl -s -H "Authorization: Bearer $API_KEY" \
+              "https://api.render.com/v1/services/$SERVICE_ID/deploys" | jq '.[0]')
+  
+            STATUS=$(echo "$DEPLOY_DATA" | jq -r '.deploy.status')
+  
+            if [[ "$STATUS" == "build_failed" || "$STATUS" == "update_failed" || "$STATUS" == "canceled" || "$STATUS" == "pre_deploy_failed" ]]; then
+              echo "Deployment failed with status: $STATUS"
+              exit 1
+            fi
+  
+            echo "Current status: $STATUS"
+            sleep 10
+          done
+  
+          echo "Deployment is live!"
+  
+      - name: Monitor Main Deployment Status
+        env:
+          API_KEY: ${{ secrets.MAIN_DEVELOP_API_KEY }}
+          SERVICE_ID: ${{ secrets.MAIN_DEVELOP_SERVICE_ID }}
+        run: |
+          STATUS=""
+          while [ "$STATUS" != "live" ]; do
+            DEPLOY_DATA=$(curl -s -H "Authorization: Bearer $API_KEY" \
+              "https://api.render.com/v1/services/$SERVICE_ID/deploys" | jq '.[0]')
+  
+            STATUS=$(echo "$DEPLOY_DATA" | jq -r '.deploy.status')
+  
+            if [[ "$STATUS" == "build_failed" || "$STATUS" == "update_failed" || "$STATUS" == "canceled" || "$STATUS" == "pre_deploy_failed" ]]; then
+              echo "Deployment failed with status: $STATUS"
+              exit 1
+            fi
+  
+            echo "Current status: $STATUS"
+            sleep 10
+          done
+  
+          echo "Deployment is live!"
