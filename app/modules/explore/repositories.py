@@ -4,6 +4,7 @@ from app import db
 from app.modules.dataset.models import Author, DSMetaData, DataSet, PublicationType
 from app.modules.featuremodel.models import FeatureModel
 from app.modules.hubfile.models import Hubfile
+from app.modules.flamapy.routes import check_uvl, get_num_configurations
 from core.repositories.BaseRepository import BaseRepository
 from datetime import datetime
 
@@ -20,7 +21,8 @@ class ExploreRepository(BaseRepository):
         super().__init__(DataSet)
 
     def filter(self, query_string, sorting="newest", publication_type="any",
-               start_date="", end_date="", min_uvl="", max_uvl="", **kwargs):
+               start_date="", end_date="", min_uvl="", max_uvl="",
+               by_valid_uvls="", min_num_configurations="", max_num_configurations="", **kwargs):
 
         # Crear un alias para `ds_meta_data` para evitar conflictos de alias.
         ds_meta_data_alias = aliased(DSMetaData)
@@ -113,4 +115,39 @@ class ExploreRepository(BaseRepository):
         if max_size_filter is not None:
             results = [ds for ds in results if ds.get_file_total_size() <= max_size_filter]
 
+        if by_valid_uvls == "on":
+            results = [
+                ds for ds in results
+                if any(
+                    any(
+                        check_uvl(file.id)[1] == 200
+                        for file in fm.files
+                    )
+                    for fm in ds.feature_models
+                )
+            ]
+
+        if min_num_configurations.isdigit() or max_num_configurations.isdigit():
+            results = [
+                ds for ds in results
+                if all(
+                    all(
+                        num_configurations_between(file.id, min_num_configurations, max_num_configurations)
+                        for file in fm.files
+                    )
+                    for fm in ds.feature_models
+                )
+            ]
+
         return results
+
+
+def num_configurations_between(file_id, min_num_configurations, max_num_configurations):
+    result, status_code = get_num_configurations(file_id)
+
+    if status_code == 200:
+        num = int(result.json["result"])
+        return (min_num_configurations.isdigit() and num >= int(min_num_configurations)
+                and max_num_configurations.isdigit() and num <= int(max_num_configurations))
+
+    return True

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function send_query() {
     setInitialNumUvlFilterMaxMin()
     setInitialDatesMaxMin()
+    setInitialNumConfigurationsFilterMaxMin()
 
     console.log("send query...")
 
@@ -26,7 +27,12 @@ function send_query() {
             const minUvl = document.querySelector('#min_uvl');
             const maxUvl = document.querySelector('#max_uvl');
             
-            setNumUvlFilterMaxMin(filter, minUvl, maxUvl);
+            setNumFilterMaxMin(filter, minUvl, maxUvl);
+
+            const minNumConfg = document.querySelector('#min_num_configurations');
+            const maxNumConfg = document.querySelector('#max_num_configurations');
+            
+            setNumFilterMaxMin(filter, minNumConfg, maxNumConfg);
 
             const searchCriteria = {
                 csrf_token: csrfToken,
@@ -36,6 +42,9 @@ function send_query() {
                 end_date: endDate.value,
                 min_uvl: minUvl.value,
                 max_uvl: maxUvl.value,
+                by_valid_uvls: document.querySelector('#by_valid_uvls').value,
+                min_num_configurations: minNumConfg.value,
+                max_num_configurations: maxNumConfg.value,
                 sorting: document.querySelector('[name="sorting"]:checked').value,
             };
 
@@ -223,20 +232,35 @@ function setInitialNumUvlFilterMaxMin() {
     }
 }
 
-function setNumUvlFilterMaxMin(filter, minUvl, maxUvl) {
-    if (filter.id === minUvl.id) {
-        const num = parseInt(minUvl.value);
+function setInitialNumConfigurationsFilterMaxMin() {
+    const minConf = document.querySelector('#min_num_configurations');
+    const maxConf = document.querySelector('#max_num_configurations');
+
+    const numMin = parseInt(minConf.value);
+    if (!isNaN(numMin)) {
+        maxConf.min = numMin
+    }
+
+    const numMax = parseInt(maxConf.value);
+    if (!isNaN(numMax)) {
+        minConf.max = numMax
+    }
+}
+
+function setNumFilterMaxMin(filter, min, max) {
+    if (filter.id === min.id) {
+        const num = parseInt(min.value);
         if (isNaN(num)) {
-            maxUvl.min = 0;
+            max.min = 0;
         } else {
-            maxUvl.min = num;
+            max.min = num;
         }
-    } else if (filter.id === maxUvl.id) {
-        const num = parseInt(maxUvl.value);
+    } else if (filter.id === max.id) {
+        const num = parseInt(max.value);
         if (isNaN(num)) {
-            minUvl.max = ""; // We suppose that more than this value is not feasible
+            min.max = "";
         } else {
-            minUvl.max = num;
+            min.max = num;
         }
     } 
 }
@@ -279,6 +303,9 @@ function clearFilters() {
     publicationTypeSelect.value = "any"; // replace "any" with whatever your default value is
     // publicationTypeSelect.dispatchEvent(new Event('input', {bubbles: true}));
 
+    let validUvlCheckbox = document.querySelector('#by_valid_uvls');
+    validUvlCheckbox.checked = false; 
+
     // Reset the dates to none
     let startDateInput = document.querySelector('#start_date');
     startDateInput.value = "";
@@ -293,6 +320,13 @@ function clearFilters() {
     let maxUvlInput = document.querySelector('#max_uvl');
     maxUvlInput.value = "";
     
+    // Reset the number of configurations filters
+    let maxConfigurationsInput = document.querySelector('#max_num_configurations');
+    maxConfigurationsInput.value = "";
+
+    let minConfigurationsInput = document.querySelector('#min_num_configurations');
+    minConfigurationsInput.value = "";
+
     // Reset the sorting option
     let sortingOptions = document.querySelectorAll('[name="sorting"]');
     sortingOptions.forEach(option => {
