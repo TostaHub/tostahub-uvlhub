@@ -8,7 +8,7 @@ class FakenodoBehavior(TaskSet):
 
     @task
     def index(self):
-        response = self.client.get("/fakenodo/datasets")
+        response = self.client.get("/fakenodo")
 
         if response.status_code != 200:
             print(f"Fakenodo index failed: {response.status_code}")
