@@ -132,8 +132,9 @@ class DSRatingRepository(BaseRepository):
         return self.model.query.filter(DSRating.ds_meta_data_id == ds_meta_data_id, DSRating.user_id == user_id).first()
 
     def get_average_rating(self, ds_meta_data_id: int) -> float:
-        average = self.model.query.filter(
-            (DSRating.ds_meta_data_id == ds_meta_data_id).with_entities(func.avg(DSRating.rating)).scalar())
+
+        average = self.model.query.with_entities(func.avg(DSRating.rating)).filter(
+            DSRating.ds_meta_data_id == ds_meta_data_id).scalar()
         return average if average else 0.0
 
     def count_ratings(self, ds_meta_data_id: int) -> int:
