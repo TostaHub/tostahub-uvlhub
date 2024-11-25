@@ -30,7 +30,8 @@ from app.modules.dataset.services import (
     DSMetaDataService,
     DSViewRecordService,
     DataSetService,
-    DOIMappingService
+    DOIMappingService,
+    DSRatingService
 )
 from app.modules.zenodo.services import ZenodoService
 
@@ -43,6 +44,7 @@ dsmetadata_service = DSMetaDataService()
 zenodo_service = ZenodoService()
 doi_mapping_service = DOIMappingService()
 ds_view_record_service = DSViewRecordService()
+ds_rating_service = DSRatingService()
 
 
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
