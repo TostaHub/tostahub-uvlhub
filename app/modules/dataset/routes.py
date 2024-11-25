@@ -30,8 +30,7 @@ from app.modules.dataset.services import (
     DSMetaDataService,
     DSViewRecordService,
     DataSetService,
-    DOIMappingService,
-    DSRatingService
+    DOIMappingService
 )
 from app.modules.zenodo.services import ZenodoService
 
@@ -44,7 +43,6 @@ dsmetadata_service = DSMetaDataService()
 zenodo_service = ZenodoService()
 doi_mapping_service = DOIMappingService()
 ds_view_record_service = DSViewRecordService()
-ds_rating_service = DSRatingService()
 
 
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
@@ -117,6 +115,15 @@ def list_dataset():
         "dataset/list_datasets.html",
         datasets=dataset_service.get_synchronized(current_user.id),
         local_datasets=dataset_service.get_unsynchronized(current_user.id),
+    )
+
+
+@dataset_bp.route("/dataset/user_id/<int:user_id>", methods=["GET"])
+def user_dataset(user_id):
+    return render_template(
+        "dataset/user_datasets.html",
+        datasets=dataset_service.get_synchronized(user_id),
+        local_datasets=dataset_service.get_unsynchronized(user_id),
     )
 
 
