@@ -1,10 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from io import BytesIO
 import os
-from flask import Flask
-
-# Importa tu aplicación Flask y el método que deseas probar
 from app import app
 
 
