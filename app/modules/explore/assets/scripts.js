@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function send_query() {
+    setInitialNumUvlFilterMaxMin()
+    setInitialDatesMaxMin()
+    setInitialNumConfigurationsFilterMaxMin()
 
     console.log("send query...")
 
@@ -16,10 +19,32 @@ function send_query() {
         filter.addEventListener('input', () => {
             const csrfToken = document.getElementById('csrf_token').value;
 
+            const startDate = document.querySelector('#start_date');
+            const endDate = document.querySelector('#end_date');
+            
+            setDatesMaxMin(filter, startDate, endDate);
+
+            const minUvl = document.querySelector('#min_uvl');
+            const maxUvl = document.querySelector('#max_uvl');
+            
+            setNumFilterMaxMin(filter, minUvl, maxUvl);
+
+            const minNumConfg = document.querySelector('#min_num_configurations');
+            const maxNumConfg = document.querySelector('#max_num_configurations');
+            
+            setNumFilterMaxMin(filter, minNumConfg, maxNumConfg);
+
             const searchCriteria = {
                 csrf_token: csrfToken,
                 query: document.querySelector('#query').value,
                 publication_type: document.querySelector('#publication_type').value,
+                start_date: startDate.value,
+                end_date: endDate.value,
+                min_uvl: minUvl.value,
+                max_uvl: maxUvl.value,
+                by_valid_uvls: document.querySelector('#by_valid_uvls').value,
+                min_num_configurations: minNumConfg.value,
+                max_num_configurations: maxNumConfg.value,
                 sorting: document.querySelector('[name="sorting"]:checked').value,
             };
 
@@ -105,6 +130,17 @@ function send_query() {
                                         </div>
 
                                     </div>
+                                                <div class="row mb-2">
+                                        <div class="col-md-4 col-12">
+                                            <span class="text-secondary">Rating</span>
+                                        </div>
+                                        <div class="col-md-8 col-12 d-flex align-items-center">
+                                            <div id="star-rating-${dataset.id}" class="stars" style="color: gold;">
+                                                ${'<span data-value="1">★</span>'.repeat(5)} <!-- Estrellas para interacción -->
+                                            </div>
+                                                <span id="average-rating-${dataset.id}" class="ms-2">-</span> <!-- Valor inicial vacío -->
+                                        </div>
+                                    </div>
 
                                     <div class="row">
 
@@ -130,8 +166,103 @@ function send_query() {
                         document.getElementById('results').appendChild(card);
                     });
                 });
+                updateAverageRating(dataset.id)
         });
     });
+}
+
+function setInitialDatesMaxMin() {
+    const startDateInput = document.querySelector('#start_date');
+    const endDateInput = document.querySelector('#end_date');
+    const today = new Date();
+
+    const startDate = new Date(startDateInput.value);
+    if (!isNaN(startDate)) {
+        const date = today > startDate ? startDate : today
+        endDateInput.min = dateToString(date);
+    } else {
+        endDateInput.min = ""
+    }
+
+    const endDate = new Date(endDateInput.value);
+    if (!isNaN(endDate)) {
+        const date = today > endDate ? endDate : today
+        startDateInput.max = dateToString(date);    
+    } else {
+        startDateInput.max = dateToString(today);
+    }
+}
+
+function setDatesMaxMin(filter, startDateInput, endDateInput) {
+    if (filter.id === startDateInput.id) {
+        const startDate = new Date(startDateInput.value);
+        if (isNaN(startDate)) {
+            endDateInput.min = "";
+        } else {
+            endDateInput.min = dateToString(startDate);
+        }
+    } else if (filter.id === endDateInput.id) {
+        const endDate = new Date(endDateInput.value);
+        const today = new Date();
+        if (isNaN(endDate)) {
+            startDateInput.max = dateToString(today);
+        } else {
+            const date = today > endDate ? endDate : today
+            startDateInput.max = dateToString(date);
+        }
+    }
+}
+
+function dateToString(date) {
+    return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+}
+
+function setInitialNumUvlFilterMaxMin() {
+    const minUvl = document.querySelector('#min_uvl');
+    const maxUvl = document.querySelector('#max_uvl');
+
+    const numMin = parseInt(minUvl.value);
+    if (!isNaN(numMin)) {
+        maxUvl.min = numMin
+    }
+
+    const numMax = parseInt(maxUvl.value);
+    if (!isNaN(numMax)) {
+        minUvl.max = numMax
+    }
+}
+
+function setInitialNumConfigurationsFilterMaxMin() {
+    const minConf = document.querySelector('#min_num_configurations');
+    const maxConf = document.querySelector('#max_num_configurations');
+
+    const numMin = parseInt(minConf.value);
+    if (!isNaN(numMin)) {
+        maxConf.min = numMin
+    }
+
+    const numMax = parseInt(maxConf.value);
+    if (!isNaN(numMax)) {
+        minConf.max = numMax
+    }
+}
+
+function setNumFilterMaxMin(filter, min, max) {
+    if (filter.id === min.id) {
+        const num = parseInt(min.value);
+        if (isNaN(num)) {
+            max.min = 0;
+        } else {
+            max.min = num;
+        }
+    } else if (filter.id === max.id) {
+        const num = parseInt(max.value);
+        if (isNaN(num)) {
+            min.max = "";
+        } else {
+            min.max = num;
+        }
+    } 
 }
 
 function formatDate(dateString) {
@@ -172,6 +303,30 @@ function clearFilters() {
     publicationTypeSelect.value = "any"; // replace "any" with whatever your default value is
     // publicationTypeSelect.dispatchEvent(new Event('input', {bubbles: true}));
 
+    let validUvlCheckbox = document.querySelector('#by_valid_uvls');
+    validUvlCheckbox.checked = false; 
+
+    // Reset the dates to none
+    let startDateInput = document.querySelector('#start_date');
+    startDateInput.value = "";
+
+    let endDateInput = document.querySelector('#end_date');
+    endDateInput.value = "";
+    
+    // Reset the number of uvl models filters
+    let minUvlInput = document.querySelector('#min_uvl');
+    minUvlInput.value = "";
+
+    let maxUvlInput = document.querySelector('#max_uvl');
+    maxUvlInput.value = "";
+    
+    // Reset the number of configurations filters
+    let maxConfigurationsInput = document.querySelector('#max_num_configurations');
+    maxConfigurationsInput.value = "";
+
+    let minConfigurationsInput = document.querySelector('#min_num_configurations');
+    minConfigurationsInput.value = "";
+
     // Reset the sorting option
     let sortingOptions = document.querySelectorAll('[name="sorting"]');
     sortingOptions.forEach(option => {
@@ -181,6 +336,9 @@ function clearFilters() {
 
     // Perform a new search with the reset filters
     queryInput.dispatchEvent(new Event('input', {bubbles: true}));
+
+    setInitialNumUvlFilterMaxMin()
+    setInitialDatesMaxMin()
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -203,3 +361,25 @@ document.addEventListener('DOMContentLoaded', () => {
         queryInput.dispatchEvent(new Event('input', {bubbles: true}));
     }
 });
+
+
+function updateAverageRating(datasetId) {
+    fetch(`/datasets/${datasetId}/average-rating`)
+        .then(response => response.json())
+        .then(data => {
+            const ratingValue = data.average_rating.toFixed(1);
+            document.getElementById('average-rating-' + datasetId).innerText = ratingValue;
+
+            // Resaltar el número correcto de estrellas en amarillo
+            const starContainer = document.getElementById('star-rating-' + datasetId);
+            highlightStars(starContainer, Math.round(data.average_rating));
+        })
+        .catch(error => console.error('Error fetching average rating:', error));
+}
+
+function highlightStars(container, rating) {
+    container.querySelectorAll('span').forEach(star => {
+        const starValue = star.getAttribute('data-value');
+        star.style.color = starValue <= rating ? '#FFD700' : '#ddd'; // Estrellas doradas según el rating
+    });
+}
