@@ -34,6 +34,8 @@ function send_query() {
             
             setNumFilterMaxMin(filter, minNumConfg, maxNumConfg);
 
+            byValidUvls = document.querySelector('#by_valid_uvls').checked ? "on" : "off"
+
             const searchCriteria = {
                 csrf_token: csrfToken,
                 query: document.querySelector('#query').value,
@@ -42,7 +44,7 @@ function send_query() {
                 end_date: endDate.value,
                 min_uvl: minUvl.value,
                 max_uvl: maxUvl.value,
-                by_valid_uvls: document.querySelector('#by_valid_uvls').value,
+                by_valid_uvls: byValidUvls,
                 min_num_configurations: minNumConfg.value,
                 max_num_configurations: maxNumConfg.value,
                 sorting: document.querySelector('[name="sorting"]:checked').value,

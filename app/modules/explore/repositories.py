@@ -118,9 +118,9 @@ class ExploreRepository(BaseRepository):
         if by_valid_uvls == "on":
             results = [
                 ds for ds in results
-                if any(
-                    any(
-                        check_uvl(file.id)[1] == 200
+                if all(
+                    all(
+                        check_uvl(file.id, ds)[1] == 200
                         for file in fm.files
                     )
                     for fm in ds.feature_models
@@ -147,7 +147,12 @@ def num_configurations_between(file_id, min_num_configurations, max_num_configur
 
     if status_code == 200:
         num = int(result.json["result"])
-        return (min_num_configurations.isdigit() and num >= int(min_num_configurations)
-                and max_num_configurations.isdigit() and num <= int(max_num_configurations))
+        valid_min = min_num_configurations.isdigit()
+        valid_max = max_num_configurations.isdigit()
+        if valid_min and valid_max:
+            return num >= int(min_num_configurations) and num <= int(max_num_configurations)
+        else:
+            return (valid_min and num >= int(min_num_configurations)
+                    or valid_max and num <= int(max_num_configurations))
 
     return True
