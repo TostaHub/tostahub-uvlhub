@@ -8,4 +8,3 @@ class FakenodoRepository(BaseRepository):
 
     def create_new_deposition(self, dep_metadata):
         return self.create(dep_metadata=dep_metadata)
-
