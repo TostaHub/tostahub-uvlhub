@@ -120,7 +120,7 @@ class ExploreRepository(BaseRepository):
                 ds for ds in results
                 if all(
                     all(
-                        check_uvl(file.id, ds)[1] == 200
+                        check_uvl(file.id)[1] == 200
                         for file in fm.files
                     )
                     for fm in ds.feature_models
