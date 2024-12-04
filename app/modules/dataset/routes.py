@@ -24,10 +24,9 @@ from flask import (
     jsonify,
     send_from_directory,
     make_response,
-    abort,
-    url_for,
+    url_for
 )
-from flask_login import login_required, current_user
+from flask_login import login_required
 
 from app.modules.dataset.forms import DataSetForm
 from app.modules.dataset.models import (
@@ -411,16 +410,13 @@ def get_unsynchronized_dataset(dataset_id):
     return render_template("dataset/view_dataset.html", dataset=dataset)
 
 
-
 @dataset_bp.route("/dataset/<int:dataset_id>/", methods=["GET"])
 def view_dataset(dataset_id):
     # Obtén el dataset por su ID
     dataset = dataset_service.get_or_404(dataset_id)
-    
+
     # Renderiza la plantilla con los datos del dataset
     return render_template("dataset/view_dataset.html", dataset=dataset)
-
-
 
 
 @dataset_bp.route('/dataset/<int:dataset_id>/edit', methods=['GET', 'POST'])
@@ -455,7 +451,7 @@ def edit_dataset(dataset_id):
 
     return render_template('dataset/edit_dataset.html', form=form, dataset=dataset)
 
-=======
+
 @dataset_bp.route("/datasets/<int:dataset_id>/rate", methods=["POST"])
 @login_required
 def rate_dataset(dataset_id):
@@ -470,4 +466,3 @@ def rate_dataset(dataset_id):
 def get_dataset_average_rating(dataset_id):
     average_rating = ds_rating_service.get_dataset_average_rating(dataset_id)
     return jsonify({'average_rating': average_rating}), 200
-
