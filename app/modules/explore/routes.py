@@ -1,5 +1,4 @@
 from flask import render_template, request, jsonify
-
 from app.modules.explore import explore_bp
 from app.modules.explore.forms import ExploreForm
 from app.modules.explore.services import ExploreService
@@ -8,7 +7,7 @@ from app.modules.explore.services import ExploreService
 @explore_bp.route('/explore', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        query = request.args.get('query', '')
+        query = request.args.get('query', '')  # Obtener la consulta desde la URL
         form = ExploreForm()
         return render_template('explore/index.html', form=form, query=query)
 

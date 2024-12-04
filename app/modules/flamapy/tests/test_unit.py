@@ -2,6 +2,7 @@ import pytest
 from flask import Flask
 from unittest.mock import patch, MagicMock
 from app.modules.flamapy.routes import flamapy_bp
+from app.modules.common.dbutils import create_dataset_db
 
 
 @pytest.fixture(scope='module')
@@ -10,8 +11,7 @@ def test_client(test_client):
     Extends the test_client fixture to add additional specific data for module testing.
     """
     with test_client.application.app_context():
-        # Add HERE new elements to the database that you want to exist in the test context.
-        # DO NOT FORGET to use db.session.add(<element>) and db.session.commit() to save the data.
+        create_dataset_db(1)
         pass
 
     yield test_client
@@ -25,6 +25,7 @@ def test_sample_assertion(test_client):
     """
     greeting = "Hello, World!"
     assert greeting == "Hello, World!", "The greeting does not coincide with 'Hello, World!'"
+
 
 
 # TEST DE GLENCOE
@@ -203,3 +204,19 @@ def test_to_cnf_unexpected(mock_isfile, mock_get_by_id, client):
     # Verifica el mensaje de error y los detalles
     assert response.json["error"] == "Internal Server Error"
     assert response.json["details"] == "Unexpected error"
+
+def test_num_configurations_get(test_client):
+    """
+    Tests GET request of num of configurations of given file ids.
+    """
+
+    num_configurations(test_client, 1, 200)
+    num_configurations(test_client, 2, 404)
+
+
+def num_configurations(client, file_id, expected_code):
+    response = client.get("/flamapy/num_configurations/" + str(file_id))
+    msg = "Get num configurations of file " + str(file_id) + " responded " \
+        + str(response.status_code) + " but expected " + str(expected_code)
+    assert response.status_code == expected_code, msg
+

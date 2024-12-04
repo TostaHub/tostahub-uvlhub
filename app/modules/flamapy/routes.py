@@ -4,6 +4,8 @@ from flask import send_file, jsonify
 from app.modules.flamapy import flamapy_bp
 from flamapy.metamodels.fm_metamodel.transformations import UVLReader, GlencoeWriter, SPLOTWriter
 from flamapy.metamodels.pysat_metamodel.transformations import FmToPysat, DimacsWriter
+from flamapy.core.discover import DiscoverMetamodels
+from flamapy.core.exceptions import OperationNotFound, ConfigurationNotFound
 import tempfile
 import os
 
@@ -149,4 +151,31 @@ def to_cnf(file_id):
         return jsonify({"error": str(e).replace("404 Not Found: ", "")}), 404
     except Exception as e:
         # Manejar cualquier otro error inesperado
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+
+
+@flamapy_bp.route('/flamapy/num_configurations/<int:file_id>', methods=['GET'])
+def get_num_configurations(file_id):
+    try:
+        hubfile = HubfileService().get_or_404(file_id)
+        file_name = hubfile.name
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
+        # Agrega un mensaje de depuración
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+
+        # Initiallize the dicover metamodel
+        dm = DiscoverMetamodels()
+        result = dm.use_operation_from_file("PySATConfigurationsNumber", file_path)
+
+        return jsonify({"result": result}), 200
+
+    except NotFound as e:
+        return jsonify({"error": str(e).replace("404 Not Found: ", "")}), 404
+    except OperationNotFound as e:
+        return jsonify({"error": str(e).replace("Operation not found: ", "")}), 500
+    except ConfigurationNotFound as e:
+        return jsonify({"error": str(e).replace("Configuration not found: ", "")}), 500
+    except Exception as e:
         return jsonify({"error": "Internal Server Error", "details": str(e)}), 500

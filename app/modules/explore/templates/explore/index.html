@@ -86,6 +86,13 @@
 
                         </div>
 
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="by_valid_uvls">Filter by valid uvl models: </label>
+                                <input type="checkbox" name="by_valid_uvls" id="by_valid_uvls">
+                            </div>
+                        </div>
+
                         <p style="margin-bottom: 0.2rem;">Filter by date created at:</p>
 
                         <div class="col-lg-6">
@@ -115,6 +122,22 @@
                             <div class="mb-3">
                                 <label class="form-label" for="max_uvl">Maximum</label>
                                 <input class="form-control" type="number" name="max_uvl" id="max_uvl" min="0" required="">                                   
+                            </div>
+                        </div>
+
+                        <p style="margin-bottom: 0.2rem;">Filter number of configurations:</p>
+
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="min_num_configurations">Minimum</label>
+                                <input class="form-control" type="number" name="min_num_configurations" id="min_num_configurations" min="0" required="">
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="max_num_configurations">Maximum</label>
+                                <input class="form-control" type="number" name="max_num_configurations" id="max_num_configurations" min="0" required="">                                   
                             </div>
                         </div>
 
