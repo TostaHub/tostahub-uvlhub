@@ -4,7 +4,7 @@ import hashlib
 import shutil
 from typing import Optional
 import uuid
-from app import db;
+from app import db
 
 from flask import request
 
