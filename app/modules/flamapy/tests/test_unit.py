@@ -27,7 +27,6 @@ def test_sample_assertion(test_client):
     assert greeting == "Hello, World!", "The greeting does not coincide with 'Hello, World!'"
 
 
-
 # TEST DE GLENCOE
 @pytest.fixture
 def client():
@@ -205,6 +204,7 @@ def test_to_cnf_unexpected(mock_isfile, mock_get_by_id, client):
     assert response.json["error"] == "Internal Server Error"
     assert response.json["details"] == "Unexpected error"
 
+
 def test_num_configurations_get(test_client):
     """
     Tests GET request of num of configurations of given file ids.
@@ -219,4 +219,3 @@ def num_configurations(client, file_id, expected_code):
     msg = "Get num configurations of file " + str(file_id) + " responded " \
         + str(response.status_code) + " but expected " + str(expected_code)
     assert response.status_code == expected_code, msg
-
