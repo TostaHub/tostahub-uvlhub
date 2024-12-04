@@ -9,25 +9,29 @@ import zipfile
 from flask import send_file
 from datetime import datetime, timezone
 from zipfile import ZipFile
+from app.modules.dataset.forms import EditDatasetForm
+from flask import abort
+from flask_login import current_user
 from werkzeug.exceptions import NotFound
 from app.modules.hubfile.services import HubfileService
 from flamapy.metamodels.fm_metamodel.transformations import UVLReader, GlencoeWriter, SPLOTWriter, UVLWriter
 from flamapy.metamodels.pysat_metamodel.transformations import FmToPysat, DimacsWriter
 from flask import (
+    flash,
     redirect,
     render_template,
     request,
     jsonify,
     send_from_directory,
     make_response,
-    abort,
-    url_for,
+    url_for
 )
-from flask_login import login_required, current_user
+from flask_login import login_required
 
 from app.modules.dataset.forms import DataSetForm
 from app.modules.dataset.models import (
-    DSDownloadRecord
+    DSDownloadRecord,
+    PublicationType
 )
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.services import (
@@ -404,6 +408,48 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route("/dataset/<int:dataset_id>/", methods=["GET"])
+def view_dataset(dataset_id):
+    # Obtén el dataset por su ID
+    dataset = dataset_service.get_or_404(dataset_id)
+
+    # Renderiza la plantilla con los datos del dataset
+    return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route('/dataset/<int:dataset_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_dataset(dataset_id):
+    # Obtener el dataset a partir de su ID
+    dataset = DataSetService().get_by_id(dataset_id)
+
+    # Verificar si el usuario logueado es el propietario del dataset
+    if dataset.user_id != current_user.id:
+        # Si el usuario no es el propietario, mostrar un error 403 (Prohibido)
+        abort(403)
+
+    form = EditDatasetForm()
+
+    if form.validate_on_submit():
+        # Asignar valores del formulario al modelo DSMetaData
+        dataset.ds_meta_data.description = form.description.data
+        dataset.ds_meta_data.publication_type = PublicationType[form.publication_type.data]
+        dataset.ds_meta_data.tags = form.tags.data
+
+        # Guardar los cambios en la base de datos
+        DataSetService().update(dataset)
+
+        flash("Dataset updated successfully", "success")
+        return redirect(url_for('dataset.view_dataset', dataset_id=dataset_id))
+
+    # Pre-popular el formulario con los datos existentes del dataset
+    form.description.data = dataset.ds_meta_data.description
+    form.publication_type.data = dataset.ds_meta_data.publication_type.name
+    form.tags.data = dataset.ds_meta_data.tags
+
+    return render_template('dataset/edit_dataset.html', form=form, dataset=dataset)
 
 
 @dataset_bp.route("/datasets/<int:dataset_id>/rate", methods=["POST"])

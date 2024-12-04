@@ -25,6 +25,11 @@
             <i data-feather="search" class="center-button-icon"></i>
             Explore more datasets
         </a>
+        {% if dataset.user_id == current_user.id %}
+             <a href="{{ url_for('dataset.edit_dataset', dataset_id=dataset.id) }}" class="btn btn-primary">Edit Dataset</a>
+        {% endif %}
+
+
     </div>
 
 </div>
