@@ -154,6 +154,7 @@ def to_cnf(file_id):
         return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
 
+@flamapy_bp.route('/flamapy/num_configurations/<int:file_id>', methods=['GET'])
 def get_num_configurations(file_id):
     try:
         hubfile = HubfileService().get_or_404(file_id)
