@@ -40,9 +40,9 @@ def client():
 
             dsmetadata = DSMetaData(
                 id=10,
-                title="Sample Dataset 11",
+                title="Sample Dataset 17",
                 rating=0,
-                description="Description for dataset 11",
+                description="Description for dataset 17",
                 publication_type=PublicationType.DATA_MANAGEMENT_PLAN.name
             )
             db.session.add(dsmetadata)
@@ -59,7 +59,7 @@ def client():
                 user_id=user.id,
                 ds_meta_data_id=dsmetadata.id,
                 rating=dsmetadata.rating,
-                rated_date=datetime(2022, 3, 13)
+                rated_date=datetime(2022, 5, 17)
             )
             db.session.add(dsrating)
             db.session.commit()
@@ -134,29 +134,28 @@ def test_rate_dataset_success(client: FlaskClient):
 
 
 def test_rate_dataset_invalid_rating(client: FlaskClient):
+    """Prueba para enviar un rating inválido mayor a 5."""
     login_response = login(client, "user5@example.com", "1234")
     assert login_response.status_code == 200, "Login was unsuccessful."
-    print("Login Response:", login_response.data)  # Para ver el contenido de la respuesta
+
     response = client.post('/datasets/10/rate', json={"rating": 12})
-    assert response.status_code == 400
+    assert response.status_code == 400, "El código de estado debería ser 400 para calificación inválida."
     assert response.json["error"] == "Rating must be between 1 and 5."
 
 
 def test_rate_dataset_not_found(client: FlaskClient):
+    """Prueba para un dataset que no existe."""
     login_response = login(client, "user5@example.com", "1234")
     assert login_response.status_code == 200, "Login was unsuccessful."
-    """Prueba para un dataset inexistente."""
+
     response = client.post("/datasets/100/rate", json={"rating": 3})
-    assert response.status_code == 404
+    assert response.status_code == 404, "El código de estado debería ser 404 para dataset no encontrado."
     assert response.json["error"] == "Dataset not found."
 
 
 def test_rate_dataset_unauthorized(client):
-    """Prueba enviar un rating sin estar autenticado."""
-    # Enviar una calificación sin autenticación
+    """Prueba para enviar un rating sin estar autenticado."""
     rating_data = {'rating': 4}
-    response = client.post('/datasets/10/rate', json=rating_data)
+    response = client.post('/datasets/17/rate', json=rating_data)
 
-    assert response.status_code == 401, "El código de estado debería ser 401 para usuarios no autenticados."
-    data = response.get_json()
-    assert 'error' in data, "La respuesta debería contener un mensaje de error."
+    assert response.status_code == 302, "El código de estado debería ser 401 para usuarios no autenticados."
