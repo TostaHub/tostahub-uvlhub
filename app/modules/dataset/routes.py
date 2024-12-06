@@ -48,7 +48,7 @@ ds_view_record_service = DSViewRecordService()
 fakenodo_service = FakenodoService()
 
 
-@dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
+@dataset_bp.route("/dataset/file/upload", methods=["GET", "POST"])
 @login_required
 def create_dataset():
     form = DataSetForm()
