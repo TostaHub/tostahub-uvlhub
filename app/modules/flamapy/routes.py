@@ -157,7 +157,7 @@ def get_num_configurations(file_id):
     (_, status_code) = check_uvl(file_id)
     if status_code != 200:
         return jsonify({"error": "Internal error"}), 500
-    hubfile = HubfileService().get_or_404(file_id)
+    hubfile = HubfileService().get_by_id(file_id)
     file_name = hubfile.name
     directory_path = "app/modules/dataset/uvl_examples"
     file_path = os.path.join(directory_path, file_name)
