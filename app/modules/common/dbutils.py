@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 
-def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN, tags=""):
+def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN, tags="", date=""):
     user_test = User(email=f'user{id}@example.com', password='test1234')
     db.session.add(user_test)
     db.session.commit()
@@ -26,7 +26,7 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
             deposition_id=id,
             title=f'Sample dataset {id}',
             description=f'Description for dataset {id}',
-            publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
+            publication_type=publication_type,
             publication_doi=f'10.1234/dataset{id}',
             dataset_doi=f'10.1234/dataset{id}',
             tags='tag1, tag2',
@@ -35,10 +35,11 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
     db.session.add(ds_meta_data)
     db.session.commit()
 
+    created_at = datetime.now(timezone.utc) if date == "" else datetime.strptime(date, '%Y-%m-%d')
     dataset = DataSet(
             user_id=user_test.id,
             ds_meta_data_id=ds_meta_data.id,
-            created_at=datetime.now(timezone.utc)
+            created_at=created_at
         )
     db.session.add(dataset)
     db.session.commit()
@@ -47,7 +48,7 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
             uvl_filename=f'file{id}.uvl',
             title=f'Feature Model {id}',
             description=f'Description for feature model {id}',
-            publication_type=PublicationType.SOFTWARE_DOCUMENTATION,
+            publication_type=publication_type,
             publication_doi='10.1234/fm1',
             tags=tags,
             uvl_version='1.0'
@@ -64,7 +65,7 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
 
     load_dotenv()
     working_dir = os.getenv('WORKING_DIR', '')
-    file_name = f'file{id}.uvl'
+    file_name = f'file{id % 12}.uvl'
     src_folder = os.path.join(working_dir, 'app', 'modules', 'dataset', 'uvl_examples')
 
     dest_folder = os.path.join(working_dir, 'uploads', f'user_{user_test.id}', f'dataset_{dataset.id}')
