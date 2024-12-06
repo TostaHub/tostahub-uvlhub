@@ -13,7 +13,8 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 
-def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN, tags="", date=""):
+def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN, tags="",
+                      date="", valid=True, should_file_exist=True):
     user_test = User(email=f'user{id}@example.com', password='test1234')
     db.session.add(user_test)
     db.session.commit()
@@ -63,22 +64,23 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
     db.session.add(feature_model)
     db.session.commit()
 
-    load_dotenv()
-    working_dir = os.getenv('WORKING_DIR', '')
-    file_name = f'file{id % 12}.uvl'
-    src_folder = os.path.join(working_dir, 'app', 'modules', 'dataset', 'uvl_examples')
+    if should_file_exist:
+        load_dotenv()
+        working_dir = os.getenv('WORKING_DIR', '')
+        file_name = f'file{id % 12}.uvl' if valid else 'invalidfile.uvl'
+        src_folder = os.path.join(working_dir, 'app', 'modules', 'dataset', 'uvl_examples')
 
-    dest_folder = os.path.join(working_dir, 'uploads', f'user_{user_test.id}', f'dataset_{dataset.id}')
-    os.makedirs(dest_folder, exist_ok=True)
-    shutil.copy(os.path.join(src_folder, file_name), dest_folder)
+        dest_folder = os.path.join(working_dir, 'uploads', f'user_{user_test.id}', f'dataset_{dataset.id}')
+        os.makedirs(dest_folder, exist_ok=True)
+        shutil.copy(os.path.join(src_folder, file_name), dest_folder)
 
-    file_path = os.path.join(dest_folder, file_name)
+        file_path = os.path.join(dest_folder, file_name)
 
-    uvl_file = Hubfile(
-        name=file_name,
-        checksum=f'checksum{id}',
-        size=os.path.getsize(file_path),
-        feature_model_id=feature_model.id
-    )
-    db.session.add(uvl_file)
-    db.session.commit()
+        uvl_file = Hubfile(
+            name=file_name,
+            checksum=f'checksum{id}',
+            size=os.path.getsize(file_path),
+            feature_model_id=feature_model.id
+        )
+        db.session.add(uvl_file)
+        db.session.commit()
