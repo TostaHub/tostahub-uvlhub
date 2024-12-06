@@ -56,13 +56,13 @@ def check_uvl(file_id):
         parser.removeErrorListeners()
         parser.addErrorListener(error_listener)
 
-        # tree = parser.featureModel()
+        tree = parser.featureModel()
 
         if error_listener.errors:
             return jsonify({"errors": error_listener.errors}), 400
 
         # Optional: Print the parse tree
-        # print(tree.toStringTree(recog=parser))
+        print(tree.toStringTree(recog=parser))
 
         return jsonify({"message": "Valid Model"}), 200
 
