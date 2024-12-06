@@ -28,12 +28,13 @@ def test_num_configurations_get(test_client):
     """
     Tests GET request of num of configurations of given file ids.
     """
+    file_id_exists = 1
+    num_configurations_test(test_client, file_id_exists, 200)
+    file_id_not_exists = 2
+    num_configurations_test(test_client, file_id_not_exists, 404)
 
-    num_configurations(test_client, 1, 200)
-    num_configurations(test_client, 2, 404)
 
-
-def num_configurations(client, file_id, expected_code):
+def num_configurations_test(client, file_id, expected_code):
     response = client.get("/flamapy/num_configurations/" + str(file_id))
     msg = "Get num configurations of file " + str(file_id) + " responded " \
         + str(response.status_code) + " but expected " + str(expected_code)
