@@ -1,7 +1,7 @@
 from app import db
 
 
-class Fakenodo(db.Model):
+class Deposition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dep_metadata = db.Column(db.JSON, nullable=False)
     status = db.Column(db.String(50), nullable=False, default="draft")
