@@ -130,7 +130,7 @@ def list_dataset():
     )
 
 
-@dataset_bp.route("/dataset/user_id/<int:user_id>", methods=["GET"])
+@dataset_bp.route("/api/v1/datasets/user/<int:user_id>", methods=["GET"])
 def user_dataset(user_id):
     return render_template(
         "dataset/user_datasets.html",

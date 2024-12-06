@@ -69,7 +69,8 @@
                         </span>
                     </div>
                     <div class="col-md-8 col-12">
-                        <a href="#">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
+                        <a href="{{ url_for('dataset.user_dataset', user_id=dataset.user.id, _external=True) }}">
+                            {{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
                     </div>
 
                 </div>
