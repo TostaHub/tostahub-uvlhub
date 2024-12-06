@@ -12,6 +12,7 @@ def test_client(test_client):
         create_dataset_db(1, PublicationType.BOOK, "tag1,tag2")
         create_dataset_db(2, PublicationType.ANNOTATION_COLLECTION, "tag2")
         create_dataset_db(3, PublicationType.BOOK, date="2020-1-1")
+        create_dataset_db(4, valid=False)
 
         pass
 
@@ -36,15 +37,15 @@ def test_explore_post(test_client):
 
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
-    assert len(response.get_json()) == 3, "Wrong number of datasets"
+    assert len(response.get_json()) == 4, "Wrong number of datasets"
 
 
 def test_explore_filter_num_uvls_post(test_client):
-    search_criteria = get_search_criteria(max_uvl="1")
+    search_criteria = get_search_criteria(min_uvl="1")
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
     num_ds = len(response.get_json())
-    assert num_ds == 3, f"Wrong number of datasets: {num_ds}"
+    assert num_ds == 4, f"Wrong number of datasets: {num_ds}"
 
     search_criteria = get_search_criteria(max_uvl="0")
     response = test_client.post("/explore", json=search_criteria)
@@ -63,13 +64,19 @@ def test_explore_filter_num_configurations_post(test_client):
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
     num_conf = len(response.get_json())
-    assert num_conf == 3, f"Wrong number of datasets: {num_conf}"
+    assert num_conf == 4, f"Wrong number of datasets: {num_conf}"
 
     search_criteria = get_search_criteria(max_num_configurations="0")
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
     num_conf = len(response.get_json())
-    assert num_conf == 0, f"Wrong number of datasets: {num_conf}"
+    assert num_conf == 1, f"Wrong number of datasets: {num_conf}"
+
+    search_criteria = get_search_criteria(min_num_configurations="1", max_num_configurations="30")
+    response = test_client.post("/explore", json=search_criteria)
+    assert response.status_code == 200, "The explore page could not be accessed."
+    num_conf = len(response.get_json())
+    assert num_conf == 4, f"Wrong number of datasets: {num_conf}"
 
     wrong_num = "notanumber"
     search_criteria = get_search_criteria(min_num_configurations=wrong_num, max_num_configurations=wrong_num)
@@ -83,7 +90,7 @@ def test_explore_filter_date_post(test_client):
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
     num = len(response.get_json())
-    assert num == 2, f"Wrong number of datasets: {num}"
+    assert num == 3, f"Wrong number of datasets: {num}"
 
     search_criteria = get_search_criteria(start_date="2025-1-1")
     response = test_client.post("/explore", json=search_criteria)
@@ -114,14 +121,14 @@ def test_explore_filter_publication_type_post(test_client):
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
     num = len(response.get_json())
-    assert num == 3, f"Wrong number of datasets: {num}"
+    assert num == 4, f"Wrong number of datasets: {num}"
 
     wrong_publication_type = "ERROR"
     search_criteria = get_search_criteria(publication_type=wrong_publication_type)
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
     num = len(response.get_json())
-    assert num == 3, f"Wrong number of datasets: {num}"
+    assert num == 4, f"Wrong number of datasets: {num}"
 
 
 def test_explore_filter_query_post(test_client):
@@ -151,6 +158,28 @@ def test_explore_mixed_filter_post(test_client):
     assert response.status_code == 200, "The explore page could not be accessed."
     num = len(response.get_json())
     assert num == 0, f"Wrong number of datasets: {num}"
+
+
+def test_explore_filter_by_valid_uvl_post(test_client):
+    search_criteria = get_search_criteria(by_valid_uvls="on")
+    response = test_client.post("/explore", json=search_criteria)
+    assert response.status_code == 200, "The explore page could not be accessed."
+    num = len(response.get_json())
+    assert num == 3, f"Wrong number of datasets: {num}"
+
+    search_criteria = get_search_criteria(by_valid_uvls="off")
+    response = test_client.post("/explore", json=search_criteria)
+    assert response.status_code == 200, "The explore page could not be accessed."
+    num = len(response.get_json())
+    assert num == 4, f"Wrong number of datasets: {num}"
+
+
+def test_explore_soring_post(test_client):
+    search_criteria = get_search_criteria(sorting="oldest")
+    response = test_client.post("/explore", json=search_criteria)
+    assert response.status_code == 200, "The explore page could not be accessed."
+    num = len(response.get_json())
+    assert num == 4, f"Wrong number of datasets: {num}"
 
 
 def get_search_criteria(query="", sorting="newest", publication_type="any",
