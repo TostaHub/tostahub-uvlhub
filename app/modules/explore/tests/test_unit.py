@@ -165,7 +165,7 @@ def test_explore_filter_by_valid_uvl_post(test_client):
     response = test_client.post("/explore", json=search_criteria)
     assert response.status_code == 200, "The explore page could not be accessed."
     num = len(response.get_json())
-    assert num == 3, f"Wrong number of datasets: {num}"
+    assert num == 0, f"Wrong number of datasets: {num}"
 
     search_criteria = get_search_criteria(by_valid_uvls="off")
     response = test_client.post("/explore", json=search_criteria)

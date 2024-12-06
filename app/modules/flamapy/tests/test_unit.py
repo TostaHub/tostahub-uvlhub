@@ -226,8 +226,6 @@ def test_to_cnf_unexpected(mock_isfile, mock_get_by_id, client):
     assert response.json["details"] == "Unexpected error"
 
 
-@patch('app.modules.hubfile.services.HubfileService.get_by_id')
-@patch('os.path.isfile')
 def test_num_configurations_get(test_client):
     """
     Tests GET request of num of configurations of given file ids.
