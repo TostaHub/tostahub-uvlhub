@@ -25,6 +25,11 @@
             <i data-feather="search" class="center-button-icon"></i>
             Explore more datasets
         </a>
+        {% if dataset.user_id == current_user.id %}
+             <a href="{{ url_for('dataset.edit_dataset', dataset_id=dataset.id) }}" class="btn btn-primary">Edit Dataset</a>
+        {% endif %}
+
+
     </div>
 
 </div>
@@ -64,7 +69,8 @@
                         </span>
                     </div>
                     <div class="col-md-8 col-12">
-                        <a href="#">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
+                        <a href="{{ url_for('dataset.user_dataset', user_id=dataset.user.id, _external=True) }}">
+                            {{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
                     </div>
 
                 </div>
@@ -326,11 +332,13 @@
                                                 SPLOT
                                             </a>
                                         </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('dataset.download_all_formats', file_id=file.id) }}">
+                                                Descargar todos (ZIP)
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
-                                
-                                
-
                             </div>
                         </div>
                     </div>
