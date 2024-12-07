@@ -318,16 +318,24 @@ function clearFilters() {
     // Reset the number of uvl models filters
     let minUvlInput = document.querySelector('#min_uvl');
     minUvlInput.value = "";
+    minUvlInput.min = ""
+    minUvlInput.max = ""
 
     let maxUvlInput = document.querySelector('#max_uvl');
     maxUvlInput.value = "";
-    
+    maxUvlInput.min = ""
+    maxUvlInput.max = ""
+
     // Reset the number of configurations filters
     let maxConfigurationsInput = document.querySelector('#max_num_configurations');
     maxConfigurationsInput.value = "";
-
+    maxConfigurationsInput.min = ""
+    maxConfigurationsInput.max = ""
+    
     let minConfigurationsInput = document.querySelector('#min_num_configurations');
     minConfigurationsInput.value = "";
+    minConfigurationsInput.min = ""
+    minConfigurationsInput.max = ""
 
     // Reset the sorting option
     let sortingOptions = document.querySelectorAll('[name="sorting"]');
