@@ -39,35 +39,35 @@ def check_uvl(file_id):
                 )
                 self.errors.append(error_message)
 
-    # try:
-    hubfile = HubfileService().get_by_id(file_id)
-    input_stream = FileStream(hubfile.get_path())
-    lexer = UVLCustomLexer(input_stream)
+    try:
+        hubfile = HubfileService().get_by_id(file_id)
+        input_stream = FileStream(hubfile.get_path())
+        lexer = UVLCustomLexer(input_stream)
 
-    error_listener = CustomErrorListener()
+        error_listener = CustomErrorListener()
 
-    lexer.removeErrorListeners()
-    lexer.addErrorListener(error_listener)
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(error_listener)
 
-    stream = CommonTokenStream(lexer)
-    parser = UVLPythonParser(stream)
+        stream = CommonTokenStream(lexer)
+        parser = UVLPythonParser(stream)
 
-    parser.removeErrorListeners()
-    parser.addErrorListener(error_listener)
+        parser.removeErrorListeners()
+        parser.addErrorListener(error_listener)
 
-    # tree = parser.featureModel()
-    parser.featureModel()
+        # tree = parser.featureModel()
+        parser.featureModel()
 
-    if error_listener.errors:
-        return jsonify({"errors": error_listener.errors}), 400
+        if error_listener.errors:
+            return jsonify({"errors": error_listener.errors}), 400
 
-    # Optional: Print the parse tree
-    # print(tree.toStringTree(recog=parser))
+        # Optional: Print the parse tree
+        # print(tree.toStringTree(recog=parser))
 
-    return jsonify({"message": "Valid Model"}), 200
+        return jsonify({"message": "Valid Model"}), 200
 
-    # except Exception as e:
-    #     return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @flamapy_bp.route('/flamapy/valid/<int:file_id>', methods=['GET'])
