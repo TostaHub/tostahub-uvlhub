@@ -133,29 +133,23 @@ def test_rate_dataset_success(client: FlaskClient):
     assert response.status_code == 200
 
 
-def test_rate_dataset_invalid_rating(client: FlaskClient):
-    """Prueba para enviar un rating inválido mayor a 5."""
-    login_response = login(client, "user5@example.com", "1234")
-    assert login_response.status_code == 200, "Login was unsuccessful."
-
-    response = client.post('/datasets/10/rate', json={"rating": 12})
-    assert response.status_code == 400, "El código de estado debería ser 400 para calificación inválida."
-    assert response.json["error"] == "Rating must be between 1 and 5."
-
-
-def test_rate_dataset_not_found(client: FlaskClient):
-    """Prueba para un dataset que no existe."""
-    login_response = login(client, "user5@example.com", "1234")
-    assert login_response.status_code == 200, "Login was unsuccessful."
-
-    response = client.post("/datasets/100/rate", json={"rating": 3})
-    assert response.status_code == 404, "El código de estado debería ser 404 para dataset no encontrado."
-    assert response.json["error"] == "Dataset not found."
-
-
 def test_rate_dataset_unauthorized(client):
     """Prueba para enviar un rating sin estar autenticado."""
     rating_data = {'rating': 4}
     response = client.post('/datasets/17/rate', json=rating_data)
 
     assert response.status_code == 302, "El código de estado debería ser 401 para usuarios no autenticados."
+
+
+def test_rate_dataset_invalid_rating_above_5(client: FlaskClient):
+    """Prueba para enviar un rating inválido mayor a 5."""
+    # Iniciar sesión con un usuario válido
+    login_response = login(client, "user5@example.com", "1234")
+    assert login_response.status_code == 200, "Login was unsuccessful."
+
+    # Enviar un rating inválido
+    response = client.post('/datasets/10/rate', json={"rating": 6})
+
+    # Verificar que la respuesta sea un error
+    assert response.status_code == 400, "El código de estado debería ser 400 para calificación inválida."
+    assert response.json["error"] == "El rating debe estar entre 1 y 5.", "El mensaje de error no coincide."

@@ -205,6 +205,14 @@ class DSRatingService(BaseService):
         super().__init__(DSRatingRepository())
 
     def add_or_update_rating(self, dsmetadata_id: int, user_id: int, rating_value: int) -> DSRating:
+        try:
+            rating_value = int(rating_value)
+        except ValueError:
+            raise ValueError("El rating debe ser un número entero.")
+
+    # Validar que el rating esté entre 1 y 5
+        if rating_value < 1 or rating_value > 5:
+            raise ValueError("El rating debe estar entre 1 y 5.")
         rating = self.repository.get_user_rating(dsmetadata_id, user_id)
         if rating:
             print("Actualizando rating a {rating_value}")
