@@ -1,11 +1,9 @@
-from flask import request, jsonify, send_file
-from . import fakenodo_bp
 import os
 import tempfile
-
-
+from flask import jsonify, request, send_file
+from . import fakenodo_bp
 datasets = {}
-dataset_counter = 1
+# Upload all files from dataset
 
 
 @fakenodo_bp.route('/fakenodo/upload', methods=['POST'])
@@ -25,10 +23,11 @@ def upload_dataset():
         }
         return jsonify({'id': dataset_id, 'filename': file.filename}), 201
     return jsonify({'error': 'No file uploaded'}), 400
+# Get dataset info
 
 
-@fakenodo_bp.route('/fakenodo/download/<int:dataset_id>', methods=['GET'])
-def download_dataset(dataset_id):
+@fakenodo_bp.route('/fakenodo/info/<dataset_id>', methods=['GET'])
+def get_Dataset(dataset_id):
     dataset = datasets.get(dataset_id)
     if dataset:
         return send_file(dataset['file_path'], as_attachment=True, attachment_filename=dataset['filename'])
@@ -38,6 +37,7 @@ def download_dataset(dataset_id):
 @fakenodo_bp.route('/fakenodo/datasets', methods=['GET'])
 def list_datasets():
     return jsonify(list(datasets.values()))
+# Delete a deposition
 
 
 @fakenodo_bp.route('/fakenodo/dataset/<int:dataset_id>', methods=['DELETE'])
