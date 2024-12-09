@@ -10,7 +10,7 @@ from app.modules.dataset.models import (
     PublicationType,
     DSMetrics,
     Author)
-from datetime import datetime, timezone
+from datetime import datetime
 from dotenv import load_dotenv
 
 
@@ -36,10 +36,10 @@ class DataSetSeeder(BaseSeeder):
                 deposition_id=1 + i,
                 title=f'Sample dataset {i+1}',
                 description=f'Description for dataset {i+1}',
-                publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
+                publication_type=PublicationType.DATA_MANAGEMENT_PLAN if i % 2 == 0 else PublicationType.BOOK,
                 publication_doi=f'10.1234/dataset{i+1}',
                 dataset_doi=f'10.1234/dataset{i+1}',
-                tags='tag1, tag2',
+                tags='tag1, tag2' if i < 2 else "tag3, tag4",
                 ds_metrics_id=seeded_ds_metrics.id
             ) for i in range(4)
         ]
@@ -61,7 +61,7 @@ class DataSetSeeder(BaseSeeder):
             DataSet(
                 user_id=user1.id if i % 2 == 0 else user2.id,
                 ds_meta_data_id=seeded_ds_meta_data[i].id,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.strptime(f'202{i}-1-1', '%Y-%m-%d')
             ) for i in range(4)
         ]
         seeded_datasets = self.seed(datasets)
@@ -74,7 +74,7 @@ class DataSetSeeder(BaseSeeder):
                 description=f'Description for feature model {i+1}',
                 publication_type=PublicationType.SOFTWARE_DOCUMENTATION,
                 publication_doi=f'10.1234/fm{i+1}',
-                tags='tag1, tag2',
+                tags='tag1, tag2' if i < 6 else "tag3, tag4",
                 uvl_version='1.0'
             ) for i in range(12)
         ]
@@ -104,7 +104,7 @@ class DataSetSeeder(BaseSeeder):
         working_dir = os.getenv('WORKING_DIR', '')
         src_folder = os.path.join(working_dir, 'app', 'modules', 'dataset', 'uvl_examples')
         for i in range(12):
-            file_name = f'file{i+1}.uvl'
+            file_name = 'invalidfile.uvl' if i == 11 else f'file{i+1}.uvl'
             feature_model = seeded_feature_models[i]
             dataset = next(ds for ds in seeded_datasets if ds.id == feature_model.data_set_id)
             user_id = dataset.user_id
