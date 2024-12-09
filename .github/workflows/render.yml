@@ -68,7 +68,7 @@ jobs:
           deploy_url: ${{ secrets.SERVER_DEPLOY_HOOK_URL }}
           token: ${{ secrets.SERVER_DEPLOY_TOKEN }}
         run: |
-          curl -X POST "$deploy_url" -H "Authorization ${token}"
+          curl -X POST "$deploy_url" -H "Authorization: ${token}"
   
       - name: Monitor Develop Deployment Status
         if: github.ref_name == 'develop'
