@@ -6,50 +6,16 @@ import tempfile
 import uuid
 import io
 import zipfile
-from flask import send_file
 from datetime import datetime, timezone
 from zipfile import ZipFile
 
 
-from flask import (abort, jsonify, make_response, redirect, render_template,
-                   request, send_from_directory, url_for)
+from flask import (abort, jsonify, make_response, render_template, send_file,
+                   request, send_from_directory, url_for, flash, redirect)
 from flask_login import current_user, login_required
-
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import DSDownloadRecord
-from app.modules.dataset.services import (AuthorService, DataSetService,
-                                          DOIMappingService,
-                                          DSDownloadRecordService,
-                                          DSMetaDataService,
-                                          DSViewRecordService)
-from app.modules.fakenodo.services import FakenodoService
-
-from app.modules.dataset.forms import EditDatasetForm
-from flask import abort
-from flask_login import current_user
-from werkzeug.exceptions import NotFound
-from app.modules.hubfile.services import HubfileService
-from flamapy.metamodels.fm_metamodel.transformations import UVLReader, GlencoeWriter, SPLOTWriter, UVLWriter
-from flamapy.metamodels.pysat_metamodel.transformations import FmToPysat, DimacsWriter
-from flask import (
-    flash,
-    redirect,
-    render_template,
-    request,
-    jsonify,
-    send_from_directory,
-    make_response,
-    url_for
-)
-from flask_login import login_required
-
-from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import (
-    DSDownloadRecord,
-    PublicationType
-)
-from app.modules.dataset import dataset_bp
+from app.modules.dataset.models import DSDownloadRecord, PublicationType
 from app.modules.dataset.services import (
     AuthorService,
     DSDownloadRecordService,
@@ -59,7 +25,12 @@ from app.modules.dataset.services import (
     DOIMappingService,
     DSRatingService
 )
-
+from app.modules.fakenodo.services import FakenodoService
+from app.modules.dataset.forms import EditDatasetForm
+from werkzeug.exceptions import NotFound
+from app.modules.hubfile.services import HubfileService
+from flamapy.metamodels.fm_metamodel.transformations import UVLReader, GlencoeWriter, SPLOTWriter, UVLWriter
+from flamapy.metamodels.pysat_metamodel.transformations import FmToPysat, DimacsWriter
 from app.modules.zenodo.services import ZenodoService
 from core.configuration.configuration import USE_FAKENODE
 
@@ -426,7 +397,6 @@ def get_unsynchronized_dataset(dataset_id):
     if not dataset:
         abort(404)
 
-
     return render_template("dataset/view_dataset.html", dataset=dataset)
 
 
@@ -486,4 +456,3 @@ def rate_dataset(dataset_id):
 def get_dataset_average_rating(dataset_id):
     average_rating = ds_rating_service.get_dataset_average_rating(dataset_id)
     return jsonify({'average_rating': average_rating}), 200
-
