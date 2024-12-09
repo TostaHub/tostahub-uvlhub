@@ -13,6 +13,7 @@ def safe_parse_date(date, date_format, default_date=None):
     try:
         return datetime.strptime(date, date_format)
     except ValueError:
+        print("error")
         return default_date
 
 
@@ -82,11 +83,13 @@ class ExploreRepository(BaseRepository):
         date_format = '%Y-%m-%d'
         if start_date:
             date_obj = safe_parse_date(start_date, date_format)
-            query = query.filter(func.date(DataSet.created_at) >= date_obj)
+            if date_obj is not None:
+                query = query.filter(func.date(DataSet.created_at) >= date_obj)
 
         if end_date:
             date_obj = safe_parse_date(end_date, date_format)
-            query = query.filter(func.date(DataSet.created_at) <= date_obj)
+            if date_obj is not None:
+                query = query.filter(func.date(DataSet.created_at) <= date_obj)
 
         # Realizamos la unión con Hubfile a través de FeatureModel
         query = query.join(FeatureModel, FeatureModel.data_set_id == DataSet.id)  # Unión con FeatureModel

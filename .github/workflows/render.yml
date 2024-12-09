@@ -62,12 +62,13 @@ jobs:
         run: |
           curl "$deploy_url"
   
-      - name: Deploy to Render (Main)
+      - name: Deploy to Server (Main)
         if: github.ref_name == 'main'
         env:
-          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          deploy_url: ${{ secrets.SERVER_DEPLOY_HOOK_URL }}
+          token: ${{ secrets.SERVER_DEPLOY_TOKEN }}
         run: |
-          curl "$deploy_url"
+          curl -X POST "$deploy_url" -H "Authorization: ${token}"
   
       - name: Monitor Develop Deployment Status
         if: github.ref_name == 'develop'
@@ -93,26 +94,3 @@ jobs:
   
           echo "Deployment is live!"
   
-      - name: Monitor Main Deployment Status
-        if: github.ref_name == 'main'
-        env:
-          API_KEY: ${{ secrets.RENDER_MAIN_API_KEY }}
-          SERVICE_ID: ${{ secrets.RENDER_MAIN_SERVICE_ID }}
-        run: |
-          STATUS=""
-          while [ "$STATUS" != "live" ]; do
-            DEPLOY_DATA=$(curl -s -H "Authorization: Bearer $API_KEY" \
-              "https://api.render.com/v1/services/$SERVICE_ID/deploys" | jq '.[0]')
-  
-            STATUS=$(echo "$DEPLOY_DATA" | jq -r '.deploy.status')
-  
-            if [[ "$STATUS" == "build_failed" || "$STATUS" == "update_failed" || "$STATUS" == "canceled" || "$STATUS" == "pre_deploy_failed" ]]; then
-              echo "Deployment failed with status: $STATUS"
-              exit 1
-            fi
-  
-            echo "Current status: $STATUS"
-            sleep 10
-          done
-  
-          echo "Deployment is live!"
