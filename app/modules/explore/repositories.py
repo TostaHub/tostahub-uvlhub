@@ -47,38 +47,59 @@ class ExploreRepository(BaseRepository):
         # Procesar el filtro de `query_string`
         query_filter = query_string.strip()
 
-        # Filtrar por autor
-        if query_filter.startswith('author:'):
-            author_filter = query_filter[7:].strip()
-            query = query.join(author_meta_data_alias).join(Author).filter(Author.name.ilike(f'%{author_filter}%'))
+        for filter_item in query_filter.split(';'):
+            # Filtrar por autor
+            if filter_item.startswith('author:'):
+                author_filter = filter_item[7:].strip()
+                query = query.join(author_meta_data_alias).join(Author).filter(Author.name.ilike(f'%{author_filter}%'))
 
-        # Filtrar por tamaño mínimo
-        elif query_filter.startswith('min_size:'):
-            try:
-                min_size_filter = int(query_filter[9:].strip())
-            except ValueError:
-                min_size_filter = None
+            # Filtrar por tamaño mínimo
+            elif filter_item.startswith('min_size:'):
+                try:
+                    min_size_filter = int(filter_item[9:].strip())
+                except ValueError:
+                    min_size_filter = None
 
-        # Filtrar por tamaño máximo
-        elif query_filter.startswith('max_size:'):
-            try:
-                max_size_filter = int(query_filter[9:].strip())
-            except ValueError:
-                max_size_filter = None
+            # Filtrar por tamaño máximo
+            elif filter_item.startswith('max_size:'):
+                try:
+                    max_size_filter = int(filter_item[9:].strip())
+                except ValueError:
+                    max_size_filter = None
 
-        # Filtrar por etiquetas
-        elif query_filter.startswith('tags:'):
-            tags_filter = query_filter[5:].strip()
-            query = query.filter(ds_meta_data_alias.tags.ilike(f'%{tags_filter}%'))
+            # Filtrar por etiquetas
+            elif filter_item.startswith('tags:'):
+                tags_filter = filter_item[5:].strip()
+                query = query.filter(ds_meta_data_alias.tags.ilike(f'%{tags_filter}%'))
 
-        # Filtrar por título o tag(consulta general)
-        else:
-            query = query.filter(
-                or_(
-                    ds_meta_data_alias.title.ilike(f"%{query_filter}%"),
-                    ds_meta_data_alias.tags.ilike(f"%{query_filter}%")
+            # Filtrar por numero maximo de modelos
+            elif filter_item.startswith('max_models:'):
+                max_model_filter = filter_item[11:].strip()
+                query = query.group_by(DataSet.id).having(func.count(Hubfile.id) <= int(max_model_filter))
+
+            # Filtrar por numero minimo de modelos
+            elif filter_item.startswith('min_models:'):
+                min_model_filter = filter_item[11:].strip()
+                query = query.group_by(DataSet.id).having(func.count(Hubfile.id) >= int(min_model_filter))
+
+            # Filtrar por numero maximo de configuraciones
+            elif filter_item.startswith('max_configs:'):
+                max_config_filter = filter_item[12:].strip()
+                max_num_configurations = max_config_filter
+
+            # Filtrar por numero minimo de configuraciones
+            elif filter_item.startswith('min_configs:'):
+                min_config_filter = filter_item[12:].strip()
+                min_num_configurations = min_config_filter
+
+            # Filtrar por título o tag(consulta general)
+            else:
+                query = query.filter(
+                    or_(
+                        ds_meta_data_alias.title.ilike(f"%{filter_item}%"),
+                        ds_meta_data_alias.tags.ilike(f"%{filter_item}%")
+                    )
                 )
-            )
 
         date_format = '%Y-%m-%d'
         if start_date:
