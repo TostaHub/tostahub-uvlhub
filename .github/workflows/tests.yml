@@ -48,12 +48,15 @@ jobs:
         MARIADB_PASSWORD: uvlhub_password
       run: |
         pytest app/modules/ --ignore-glob='*selenium*'
-        
+
     - name: Set up ChromeDriver
       run: |
         sudo apt-get update
         sudo apt-get install -y wget unzip
-        wget -N https://chromedriver.storage.googleapis.com/$(curl -s https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip -P ~/
-        unzip ~/chromedriver_linux64.zip -d ~/chromedriver
-        chmod +x ~/chromedriver/chromedriver
-        sudo mv -f ~/chromedriver/chromedriver /usr/local/bin/chromedriver
+        wget --no-verbose -O /tmp/chrome.deb https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.198-1_amd64.deb 
+        && sudo apt install -y /tmp/chrome.deb && rm /tmp/chrome.deb
+        chrome_driver="114.0.5735.90"
+        curl -Lo chromedriver_linux64.zip "https://chromedriver.storage.googleapis.com/${chrome_driver}/chromedriver_linux64.zip"
+        mkdir -p "chromedriver/stable" && \
+        unzip -q "chromedriver_linux64.zip" -d "chromedriver/stable" && \
+        chmod +x "chromedriver/stable/chromedriver"
