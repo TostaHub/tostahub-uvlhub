@@ -75,6 +75,10 @@
         <form method="POST" action="{{ url_for('dataset.edit_dataset', dataset_id=dataset.id) }}">
             {{ form.hidden_tag() }}
             <div class="form-group">
+                <label for="title">Title</label>
+                {{ form.title(size=60) }}
+            </div>
+            <div class="form-group">
                 <label for="description">Description</label>
                 {{ form.description(size=60) }}
             </div>

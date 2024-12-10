@@ -304,15 +304,19 @@ def edit_dataset(dataset_id):
     # Obtener el dataset a partir de su ID
     dataset = DataSetService().get_by_id(dataset_id)
 
+    # Verificar si el dataset existe
+    if dataset is None:
+        abort(404)  # Manejo de error si el dataset no existe
+
     # Verificar si el usuario logueado es el propietario del dataset
     if dataset.user_id != current_user.id:
-        # Si el usuario no es el propietario, mostrar un error 403 (Prohibido)
-        abort(403)
+        abort(403)  # Si el usuario no es el propietario, mostrar un error 403 (Prohibido)
 
     form = EditDatasetForm()
 
     if form.validate_on_submit():
         # Asignar valores del formulario al modelo DSMetaData
+        dataset.ds_meta_data.title = form.title.data
         dataset.ds_meta_data.description = form.description.data
         dataset.ds_meta_data.publication_type = PublicationType[form.publication_type.data]
         dataset.ds_meta_data.tags = form.tags.data
@@ -320,10 +324,11 @@ def edit_dataset(dataset_id):
         # Guardar los cambios en la base de datos
         DataSetService().update(dataset)
 
-        flash("Dataset updated successfully", "success")
+        flash("Dataset updated successfully", "success")  # Mensaje de éxito
         return redirect(url_for('dataset.view_dataset', dataset_id=dataset_id))
 
     # Pre-popular el formulario con los datos existentes del dataset
+    form.title.data = dataset.ds_meta_data.description
     form.description.data = dataset.ds_meta_data.description
     form.publication_type.data = dataset.ds_meta_data.publication_type.name
     form.tags.data = dataset.ds_meta_data.tags
