@@ -68,8 +68,12 @@ jobs:
           deploy_url: ${{ secrets.SERVER_DEPLOY_HOOK_URL }}
           token: ${{ secrets.SERVER_DEPLOY_TOKEN }}
         run: |
-          curl -X POST "$deploy_url" -H "Authorization: ${token}"
-  
+          output=$(curl -X POST "$deploy_url" -H "Authorization: ${token}")
+          if echo "$output" | grep -q "Error occurred while executing the hook's command"; then
+            echo "Deployment failed due to hook error. Exiting."
+            exit 1
+          fi
+
       - name: Monitor Develop Deployment Status
         if: github.ref_name == 'develop'
         env:
