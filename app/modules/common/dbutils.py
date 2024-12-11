@@ -3,6 +3,7 @@ import shutil
 from app import db
 from app.modules.auth.models import User
 from app.modules.dataset.models import (
+    Author,
     DataSet,
     DSMetaData,
     PublicationType,
@@ -14,7 +15,11 @@ from dotenv import load_dotenv
 
 
 def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN, tags="",
-                      date="", valid=True, should_file_exist=True):
+                      date="", valid=True, should_file_exist=True, authors=None, total_file_size=None, num_files=None):
+    # Si no se proporcionan autores, usa un autor por defecto
+    if authors is None:
+        authors = [{"name": f"Author {id}", "affiliation": "Affiliation", "orcid": f"orcid{id}"}]
+
     user_test = User(email=f'user{id}@example.com', password='test1234')
     db.session.add(user_test)
     db.session.commit()
@@ -30,10 +35,17 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
             publication_type=publication_type,
             publication_doi=f'10.1234/dataset{id}',
             dataset_doi=f'10.1234/dataset{id}',
-            tags='tag1, tag2',
+            tags=tags,
             ds_metrics_id=ds_metrics.id
         )
     db.session.add(ds_meta_data)
+    db.session.commit()
+
+    # Agregar autores al dataset
+    for author in authors:
+        author_obj = Author(name=author['name'], affiliation=author.get('affiliation', ''),
+                            orcid=author.get('orcid', ''), ds_meta_data_id=ds_meta_data.id)
+        db.session.add(author_obj)
     db.session.commit()
 
     created_at = datetime.now(timezone.utc) if date == "" else datetime.strptime(date, '%Y-%m-%d')
@@ -64,6 +76,7 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
     db.session.add(feature_model)
     db.session.commit()
 
+    # Asignar archivos
     if should_file_exist:
         load_dotenv()
         working_dir = os.getenv('WORKING_DIR', '')
@@ -84,3 +97,23 @@ def create_dataset_db(id, publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
         )
         db.session.add(uvl_file)
         db.session.commit()
+
+        # Si se especifica un tamaño total de archivos, ajustamos la lógica
+        if total_file_size is not None:
+            uvl_file.size = total_file_size
+            db.session.commit()
+
+        # Si se especifica el número de archivos, lo usamos
+        if num_files is not None:
+            for i in range(1, num_files):
+                additional_file_name = f'file{id % 12 + i}.uvl'
+                shutil.copy(os.path.join(src_folder, additional_file_name), dest_folder)
+
+                additional_uvl_file = Hubfile(
+                    name=additional_file_name,
+                    checksum=f'checksum{id + i}',
+                    size=os.path.getsize(file_path),
+                    feature_model_id=feature_model.id
+                )
+                db.session.add(additional_uvl_file)
+            db.session.commit()
