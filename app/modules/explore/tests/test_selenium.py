@@ -67,6 +67,101 @@ def test_query():
     close_driver(driver)
 
 
+def test_author_filter():
+    driver = initialize_driver()
+    host = get_host_for_selenium_testing()
+
+    driver.get(f'{host}/explore')
+    wait_for_page_to_load(driver)
+
+    set_input(driver, "query", "author:Author 4")
+    check_num_datasets(driver, 1)
+
+    set_input(driver, "query", "author:Author")
+    check_num_datasets(driver, 4)
+
+    set_input(driver, "query", "author:Nonexistent Author")
+    check_num_datasets(driver, 0)
+
+    close_driver(driver)
+
+
+def test_size_filters():
+    driver = initialize_driver()
+    host = get_host_for_selenium_testing()
+
+    driver.get(f'{host}/explore')
+    wait_for_page_to_load(driver)
+
+    set_input(driver, "query", "min_size:1000")
+    check_num_datasets(driver, 3)
+
+    set_input(driver, "query", "max_size:2000")
+    check_num_datasets(driver, 4)
+
+    set_input(driver, "query", "min_size:500;max_size:1000")
+    check_num_datasets(driver, 1)
+
+    close_driver(driver)
+
+
+def test_tags_filter():
+    driver = initialize_driver()
+    host = get_host_for_selenium_testing()
+
+    driver.get(f'{host}/explore')
+    wait_for_page_to_load(driver)
+
+    set_input(driver, "query", "tags:tag1")
+    check_num_datasets(driver, 2)
+
+    set_input(driver, "query", "tags:nonexistent-tag")
+    check_num_datasets(driver, 0)
+
+    close_driver(driver)
+
+
+def test_models_filter():
+    driver = initialize_driver()
+    host = get_host_for_selenium_testing()
+
+    driver.get(f'{host}/explore')
+    wait_for_page_to_load(driver)
+
+    set_input(driver, "query", "max_models:5")
+    check_num_datasets(driver, 4)
+
+    set_input(driver, "query", "min_models:5")
+    check_num_datasets(driver, 0)
+
+    set_input(driver, "query", "min_models:2;max_models:5")
+    check_num_datasets(driver, 4)
+
+    close_driver(driver)
+
+
+def test_configuration_filter():
+    driver = initialize_driver()
+    host = get_host_for_selenium_testing()
+
+    driver.get(f'{host}/explore')
+    wait_for_page_to_load(driver)
+
+    set_input(driver, "query", "min_configs:10")
+    check_num_datasets(driver, 4)
+
+    set_input(driver, "query", "min_configs:30")
+    check_num_datasets(driver, 0)
+
+    set_input(driver, "query", "max_configs:50")
+    check_num_datasets(driver, 4)
+
+    set_input(driver, "query", "min_configs:5;max_configs:30")
+    check_num_datasets(driver, 4)
+
+    close_driver(driver)
+
+
 def test_filters():
     driver = initialize_driver()
     host = get_host_for_selenium_testing()
@@ -135,6 +230,21 @@ def test_publication_type():
 
 
 test_query()
+
+
+test_author_filter()
+
+
+test_size_filters()
+
+
+test_tags_filter()
+
+
+test_models_filter()
+
+
+test_configuration_filter()
 
 
 test_filters()
