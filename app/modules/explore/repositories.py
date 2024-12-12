@@ -117,12 +117,6 @@ class ExploreRepository(BaseRepository):
         query = query.join(FeatureModel, FeatureModel.data_set_id == DataSet.id)  # Unión con FeatureModel
         query = query.join(Hubfile, Hubfile.feature_model_id == FeatureModel.id)  # Unión con Hubfile
 
-        if min_uvl.isdigit():
-            query = query.group_by(DataSet.id).having(func.count(Hubfile.id) >= int(min_uvl))
-
-        if max_uvl.isdigit():
-            query = query.group_by(DataSet.id).having(func.count(Hubfile.id) <= int(max_uvl))
-
         # Ordenar resultados
         if sorting == "oldest":
             query = query.order_by(DataSet.created_at.asc())
@@ -152,6 +146,12 @@ class ExploreRepository(BaseRepository):
                 )
             ]
 
+        if min_uvl.isdigit() or max_uvl.isdigit():
+            results = [
+                ds for ds in results
+                if num_uvls_between(ds, min_uvl, max_uvl)
+            ]
+
         if min_num_configurations.isdigit() or max_num_configurations.isdigit():
             results = [
                 ds for ds in results
@@ -165,6 +165,17 @@ class ExploreRepository(BaseRepository):
             ]
 
         return results
+
+
+def num_uvls_between(dataset, min_num, max_num):
+    num = dataset.get_files_count()
+    valid_min = min_num.isdigit()
+    valid_max = max_num.isdigit()
+    if valid_min and valid_max:
+        return num >= int(min_num) and num <= int(max_num)
+    else:
+        return (valid_min and num >= int(min_num)
+                or valid_max and num <= int(max_num))
 
 
 def num_configurations_between(file_id, min_num_configurations, max_num_configurations):
