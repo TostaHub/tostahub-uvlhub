@@ -32,7 +32,8 @@ class ExploreRepository(BaseRepository):
         max_size_filter = None
 
         # Inicia la consulta, usando el alias en la unión
-        query = db.session.query(DataSet).join(ds_meta_data_alias, DataSet.ds_meta_data)
+        query = db.session.query(DataSet).join(ds_meta_data_alias, DataSet.ds_meta_data)\
+            .filter(DSMetaData.dataset_doi.isnot(None))
 
         # Filtrar por tipo de publicación
         if publication_type != "any":
