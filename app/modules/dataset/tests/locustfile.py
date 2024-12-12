@@ -1,4 +1,5 @@
 import random
+from core.locust.common import get_csrf_token
 from locust import HttpUser, TaskSet, task
 from core.environment.host import get_host_for_locust_testing
 
@@ -23,7 +24,6 @@ class DatasetBehavior(TaskSet):
         self.login()
         self.create_dataset()
         self.view_user_datasets()
-
 
     def is_authenticated(self):
         """Comprueba si el login fue exitoso."""
