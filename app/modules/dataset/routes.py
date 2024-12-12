@@ -445,10 +445,25 @@ def edit_dataset(dataset_id):
 @dataset_bp.route("/datasets/<int:dataset_id>/rate", methods=["POST"])
 @login_required
 def rate_dataset(dataset_id):
-    user_id = current_user.id
-    rating_value = request.json.get('rating')
-    rating = ds_rating_service.add_or_update_rating(dataset_id, user_id, rating_value)
-    return jsonify({'message': 'Rating added', 'rating': rating.to_dict()}), 200
+    try:
+        user_id = current_user.id
+        rating_value = request.json.get('rating')
+
+        # Validar que el rating esté presente
+        if rating_value is None:
+            return jsonify({'error': 'Rating is required.'}), 400
+
+        # Intentar añadir o actualizar el rating
+        rating = ds_rating_service.add_or_update_rating(dataset_id, user_id, rating_value)
+        return jsonify({'message': 'Rating added', 'rating': rating.to_dict()}), 200
+
+    except ValueError as e:
+        # Manejar valores inválidos de rating
+        return jsonify({'error': str(e)}), 400
+
+    except Exception:
+        # Manejar errores inesperados
+        return jsonify({'error': 'Rating must be between 1 and 5.'}), 500
 
 
 @dataset_bp.route('/datasets/<int:dataset_id>/average-rating', methods=['GET'])
