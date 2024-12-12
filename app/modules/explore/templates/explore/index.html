@@ -47,9 +47,10 @@
 
                         <div class="col-12">
                             <div class="mb-3">
-                                <label class="form-label" for="query">
-                                    Search for datasets by title, description, authors, tags, UVL files...
-                                </label>
+                                    <label class="form-label" for="query">
+                                        Search for datasets by title and tags or use advanced search querys
+                                        <span class="info-icon" data-tooltip="Types of queries allowed:&#10;author:&#10;min_size:&#10;max_size:&#10;tags:&#10;max_models:&#10;min_models:&#10;max_configs:&#10;min_configs:&#10;For multiple querys use ; Example: author:2;min_size:5">i</span>
+                                    </label>
                                 <input class="form-control" id="query" name="query" required="" type="text"
                                        value="" autofocus>
                             </div>
@@ -86,6 +87,13 @@
 
                         </div>
 
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="by_valid_uvls">Filter by valid uvl models: </label>
+                                <input type="checkbox" name="by_valid_uvls" id="by_valid_uvls">
+                            </div>
+                        </div>
+
                         <p style="margin-bottom: 0.2rem;">Filter by date created at:</p>
 
                         <div class="col-lg-6">
@@ -115,6 +123,22 @@
                             <div class="mb-3">
                                 <label class="form-label" for="max_uvl">Maximum</label>
                                 <input class="form-control" type="number" name="max_uvl" id="max_uvl" min="0" required="">                                   
+                            </div>
+                        </div>
+
+                        <p style="margin-bottom: 0.2rem;">Filter number of configurations:</p>
+
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="min_num_configurations">Minimum</label>
+                                <input class="form-control" type="number" name="min_num_configurations" id="min_num_configurations" min="0" required="">
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="max_num_configurations">Maximum</label>
+                                <input class="form-control" type="number" name="max_num_configurations" id="max_num_configurations" min="0" required="">                                   
                             </div>
                         </div>
 
@@ -184,4 +208,49 @@
 
 {% block scripts %}
     <script src="{{ url_for('explore.scripts') }}"></script>
+    
+    <style>
+        /* Estilo del icono dentro del texto */
+        .info-icon {
+            font-weight: bold;
+            font-size: 14px; /* Tamaño de la letra más pequeño */
+            color: white; /* Color de la letra dentro del círculo */
+            background-color: #4caf50; /* Color de fondo verde */
+            border-radius: 50%; /* Hacer el fondo circular */
+            width: 22px; /* Tamaño más pequeño del círculo */
+            height: 22px; /* Tamaño más pequeño del círculo */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 5px; /* Espacio entre el texto y el icono */
+            position: relative;
+        }
+
+        /* Estilo para el texto del tooltip */
+        .info-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;  /* Aumenta el padding para hacerlo más grande */
+            background-color: #add8e6; /* Fondo azul claro */
+            color: #333; /* Texto oscuro */
+            font-size: 12px;
+            border-radius: 5px;
+            white-space: pre-wrap; /* Usar pre-wrap para los saltos de línea */
+            opacity: 0;
+            visibility: hidden;
+            z-index: 10;
+            transition: opacity 0.3s;
+            width: 200px; /* Ajusta el ancho a un valor mayor */
+        }
+
+        /* Mostrar el tooltip al pasar el ratón */
+        .info-icon:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
 {% endblock %}
