@@ -35,7 +35,7 @@ def upgrade():
         )
 
     if 'deposition' not in tables:
-        op.create_table('ds_rating',
+        op.create_table('deposition',
             sa.Column('id', sa.Integer(), nullable=False),
             sa.Column('dep_metadata', sa.JSON(), nullable=False),
             sa.Column('status', sa.String(length=50), nullable=False, default="draft"),
