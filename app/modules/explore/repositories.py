@@ -76,12 +76,12 @@ class ExploreRepository(BaseRepository):
             # Filtrar por numero maximo de modelos
             elif filter_item.startswith('max_models:'):
                 max_model_filter = filter_item[11:].strip()
-                query = query.group_by(DataSet.id).having(func.count(Hubfile.id) <= int(max_model_filter))
+                max_uvl = max_model_filter
 
             # Filtrar por numero minimo de modelos
             elif filter_item.startswith('min_models:'):
                 min_model_filter = filter_item[11:].strip()
-                query = query.group_by(DataSet.id).having(func.count(Hubfile.id) >= int(min_model_filter))
+                min_uvl = min_model_filter
 
             # Filtrar por numero maximo de configuraciones
             elif filter_item.startswith('max_configs:'):
