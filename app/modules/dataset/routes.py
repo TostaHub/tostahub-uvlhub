@@ -68,18 +68,20 @@ def create_dataset():
 
         # send dataset as deposition to Zenodo/Fakenodo
         data = {}
-        nodo = "Fakenodo" if USE_FAKENODE else "Zenodo"
+        actualNode = "Fakenodo" if USE_FAKENODE else "Zenodo"
         try:
-            nodo_response_json = nodo_service.create_new_deposition(dataset)
+            nodo_response_json = nodo_service.create_new_deposition(dataset.ds_meta_data)
             response_data = json.dumps(nodo_response_json)
             data = json.loads(response_data)
         except Exception as exc:
             data = {}
             nodo_response_json = {}
-            logger.exception(f"Exception while create dataset data in {nodo} {exc}")
+            logger.exception(f"Exception while create dataset data in {actualNode} {exc}")
 
-        if data.get("conceptrecid"):
-            deposition_id = data.get("id")
+        deposition_id = data.get("id")
+        if deposition_id:
+            print("DEPOSITION")
+            print(deposition_id)
 
             # update dataset with deposition id in Zenodo/Fakenodo
             dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
@@ -96,7 +98,7 @@ def create_dataset():
                 deposition_doi = nodo_service.get_doi(deposition_id)
                 dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
             except Exception as e:
-                msg = f"it has not been possible upload feature models in {nodo} and update the DOI: {e}"
+                msg = f"it has not been possible upload feature models in {actualNode} and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
 
         # Delete temp folder
