@@ -11,11 +11,11 @@ class DatasetBehavior(TaskSet):
         })
         if response.status_code == 200:
             print("Login exitoso.")
-            
-            self.session_cookies = response.cookies  
+
+            self.session_cookies = response.cookies
         else:
             print("Error en el login:", response.status_code, response.text)
-            self.session_cookies = None  
+            self.session_cookies = None
 
     def is_authenticated(self):
         """Comprueba si el login fue exitoso."""
