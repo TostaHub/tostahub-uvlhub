@@ -12,6 +12,7 @@ class DatasetBehavior(TaskSet):
             'email': 'user1@example.com',
             'password': '1234'
         })
+        self.csrf_token = get_csrf_token(response)
         if response.status_code == 200:
             print("Login exitoso.")
 
@@ -21,9 +22,17 @@ class DatasetBehavior(TaskSet):
             self.session_cookies = None
 
         self.dataset()
-        self.login()
         self.create_dataset()
         self.view_user_datasets()
+        self.rate_dataset_invalid_rating()
+        self.rate_dataset_not_found()
+        self.rate_dataset_success()
+        self.rate_dataset_unauthorized()
+
+    @task
+    def dataset(self):
+        response = self.client.get("/dataset/upload")
+        get_csrf_token(response)
 
     def is_authenticated(self):
         """Comprueba si el login fue exitoso."""
@@ -56,7 +65,7 @@ class DatasetBehavior(TaskSet):
         elif response:
             print("Error inesperado:", response.status_code, response.text)
 
-    @task(1)
+    @task(3)
     def rate_dataset_not_found(self):
         """Simula un usuario intentando calificar un dataset que no existe."""
         response = self.post_with_auth("/datasets/100/rate", json={"rating": 3})
@@ -65,7 +74,7 @@ class DatasetBehavior(TaskSet):
         elif response:
             print("Error inesperado:", response.status_code, response.text)
 
-    @task(1)
+    @task(4)
     def rate_dataset_unauthorized(self):
         """Simula un usuario no autenticado intentando calificar un dataset."""
         response = self.client.post('/datasets/17/rate', json={"rating": 4})
@@ -74,19 +83,7 @@ class DatasetBehavior(TaskSet):
         else:
             print("Error inesperado:", response.status_code, response.text)
 
-    def login(self):
-        """Simula el inicio de sesión del usuario."""
-        response = self.client.post(
-            "/login",
-            {
-                "username": "test_user",
-                "password": "test_password"
-            },
-            name="User Login"
-        )
-        self.csrf_token = get_csrf_token(response)
-
-    @task
+    @task(5)
     def create_dataset(self):
         """Simula la creación de un nuevo dataset."""
         dataset_payload = {
@@ -105,10 +102,10 @@ class DatasetBehavior(TaskSet):
             if response.status_code != 200 or "error" in response.text.lower():
                 response.failure("Dataset creation failed")
 
-    @task
+    @task(6)
     def view_user_datasets(self):
         """Simula la visualización de la página de datasets del usuario."""
-        user_id = 7  # Cambiar según el ID del usuario deseado
+        user_id = 7
         with self.client.get(
             f"/api/v1/datasets/user/{user_id}",
             name="View User Datasets",
