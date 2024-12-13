@@ -105,7 +105,7 @@ class DatasetBehavior(TaskSet):
     @task(6)
     def view_user_datasets(self):
         """Simula la visualización de la página de datasets del usuario."""
-        user_id = 7 
+        user_id = 7
         with self.client.get(
             f"/api/v1/datasets/user/{user_id}",
             name="View User Datasets",
