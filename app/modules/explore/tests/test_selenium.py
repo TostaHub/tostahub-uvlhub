@@ -150,8 +150,14 @@ def test_configuration_filter():
     set_input(driver, "query", "min_configs:10")
     check_num_datasets(driver, 4)
 
-    set_input(driver, "query", "min_configs:300")
+    set_input(driver, "query", "min_configs:30")
     check_num_datasets(driver, 0)
+
+    set_input(driver, "query", "max_configs:50")
+    check_num_datasets(driver, 4)
+
+    set_input(driver, "query", "min_configs:5;max_configs:30")
+    check_num_datasets(driver, 4)
 
     close_driver(driver)
 
