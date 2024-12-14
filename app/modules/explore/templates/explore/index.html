@@ -210,44 +210,41 @@
     <script src="{{ url_for('explore.scripts') }}"></script>
     
     <style>
-        /* Estilo del icono dentro del texto */
         .info-icon {
             font-weight: bold;
-            font-size: 14px; /* Tamaño de la letra más pequeño */
-            color: white; /* Color de la letra dentro del círculo */
-            background-color: #4caf50; /* Color de fondo verde */
-            border-radius: 50%; /* Hacer el fondo circular */
-            width: 22px; /* Tamaño más pequeño del círculo */
-            height: 22px; /* Tamaño más pequeño del círculo */
+            font-size: 14px;
+            color: white;
+            background-color: #4caf50;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            margin-left: 5px; /* Espacio entre el texto y el icono */
+            margin-left: 5px;
             position: relative;
         }
 
-        /* Estilo para el texto del tooltip */
         .info-icon::after {
             content: attr(data-tooltip);
             position: absolute;
             top: 25px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 10px 20px;  /* Aumenta el padding para hacerlo más grande */
-            background-color: #add8e6; /* Fondo azul claro */
-            color: #333; /* Texto oscuro */
+            padding: 10px 20px;
+            background-color: #add8e6;
+            color: #333;
             font-size: 12px;
             border-radius: 5px;
-            white-space: pre-wrap; /* Usar pre-wrap para los saltos de línea */
+            white-space: pre-wrap;
             opacity: 0;
             visibility: hidden;
             z-index: 10;
             transition: opacity 0.3s;
-            width: 200px; /* Ajusta el ancho a un valor mayor */
+            width: 200px;
         }
 
-        /* Mostrar el tooltip al pasar el ratón */
         .info-icon:hover::after {
             opacity: 1;
             visibility: visible;
