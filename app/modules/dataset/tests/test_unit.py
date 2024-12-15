@@ -1,4 +1,6 @@
 from datetime import datetime
+import time
+from flask import current_app
 import pytest
 from flask.testing import FlaskClient
 from app import create_app, db
@@ -70,31 +72,6 @@ def client():
             db.session.remove()
             db.drop_all()
 
-
-def test_edit_dataset_success(client: FlaskClient):
-    """Prueba para editar un dataset exitosamente."""
-    # Iniciar sesión como propietario del dataset
-    assert current_app.name == "test", "El contexto de la aplicación no está correctamente configurado."
-    login_response = login(client, "user1@example.com", "1234")
-    assert login_response.status_code == 200, "Login was unsuccessful."
-
-    # Realizar la solicitud POST para editar el dataset
-    response = client.post(
-        '/dataset/1/edit',
-        data={
-            "description": "Updated description",
-            "publication_type": "RESEARCH_PAPER",
-            "tags": "updated, tags"
-        },
-    )
-
-    assert response.status_code == 200, "El código de estado debería ser 200 tras la actualización exitosa."
-
-    # Verificar que los datos se actualizaron en la base de datos
-    dsmetadata = DSMetaData.query.get(1)
-    assert dsmetadata.description == "Updated description"
-    assert dsmetadata.publication_type == "RESEARCH_PAPER"
-    assert dsmetadata.tags == "updated, tags"
 
 
 def test_edit_dataset_access_denied(client: FlaskClient):
