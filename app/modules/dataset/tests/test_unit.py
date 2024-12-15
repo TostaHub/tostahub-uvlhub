@@ -1,4 +1,5 @@
 from datetime import datetime
+from flask import app
 import pytest
 from flask.testing import FlaskClient
 from app import create_app, db
