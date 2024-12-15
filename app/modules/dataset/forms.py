@@ -7,6 +7,7 @@ from app.modules.dataset.models import PublicationType
 
 
 class EditDatasetForm(FlaskForm):
+    title = TextAreaField('Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
     publication_type = SelectField(
         'Publication Type',

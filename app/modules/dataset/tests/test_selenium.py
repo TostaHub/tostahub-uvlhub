@@ -1,13 +1,74 @@
 import os
 import time
-
+from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
 from core.environment.host import get_host_for_selenium_testing
 from core.selenium.common import initialize_driver, close_driver
+
+
+class TestSelenium:
+    def setup_method(self, method):
+        self.driver = webdriver.Chrome()
+        self.vars = {}
+
+    def teardown_method(self, method):
+        self.driver.quit()
+
+    def test_testselenium(self):
+        self.driver.get("http://127.0.0.1:5000/")
+        self.driver.set_window_size(1850, 1053)
+        self.driver.find_element(By.CSS_SELECTOR, ".nav-link:nth-child(1)").click()
+        self.driver.find_element(By.ID, "submit").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".sidebar-item:nth-child(7) .align-middle:nth-child(2)").click()
+        self.driver.find_element(By.LINK_TEXT, "ffffddccdd").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".nav-link:nth-child(1)").click()
+        self.driver.find_element(By.ID, "email").send_keys("user1@example.com")
+        self.driver.find_element(By.ID, "password").send_keys("1234")
+        self.driver.find_element(By.ID, "submit").click()
+        self.driver.find_element(By.LINK_TEXT, "My datasets").click()
+        self.driver.find_element(By.CSS_SELECTOR,
+                                 ".card-body:nth-child(1)>.table tr:nth-child(2)>td:nth-child(1)").click()
+        self.driver.find_element(By.LINK_TEXT, "ffffddccdd").click()
+        self.driver.find_element(By.LINK_TEXT, "Edit Dataset").click()
+        self.driver.find_element(By.ID, "title").click()
+        self.driver.find_element(By.ID, "title").click()
+        element = self.driver.find_element(By.ID, "title")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.ID, "title").click()
+        self.driver.find_element(By.ID, "title").click()
+        self.driver.find_element(By.ID, "title").send_keys("Hola")
+        self.driver.find_element(By.CSS_SELECTOR, "button").click()
+        self.driver.find_element(By.LINK_TEXT, "Edit Dataset").click()
+        self.driver.find_element(By.ID, "title").click()
+        self.driver.find_element(By.LINK_TEXT, "Edit Dataset").click()
+        self.driver.find_element(By.ID, "description").click()
+        self.driver.find_element(By.ID, "description").click()
+        self.driver.find_element(By.ID, "description").click()
+        element = self.driver.find_element(By.ID, "description")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.ID, "description").click()
+        self.driver.find_element(By.ID, "description").send_keys("hola")
+        self.driver.find_element(By.CSS_SELECTOR, "button").click()
+        self.driver.find_element(By.LINK_TEXT, "Edit Dataset").click()
+        dropdown = self.driver.find_element(By.ID, "publication_type")
+        dropdown.find_element(By.XPATH, "//option[. = 'taxonomictreatment']").click()
+        element = self.driver.find_element(By.ID, "publication_type")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.ID, "publication_type")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.ID, "publication_type")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.CSS_SELECTOR, "button").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".sidebar-item:nth-child(7) .align-middle:nth-child(2)").click()
 
 
 def wait_for_page_to_load(driver, timeout=4):
@@ -19,7 +80,6 @@ def wait_for_page_to_load(driver, timeout=4):
 def count_datasets(driver, host):
     driver.get(f"{host}/dataset/list")
     wait_for_page_to_load(driver)
-
     try:
         amount_datasets = len(driver.find_elements(By.XPATH, "//table//tbody//tr"))
     except Exception:
@@ -127,17 +187,14 @@ def test_upload_dataset():
         print("Test 1 passed!")
 
     finally:
-
         # Close the browser
         close_driver(driver)
 
 
 def test_testViewUserProfileSelenium():
     driver = initialize_driver()
-
     try:
         host = get_host_for_selenium_testing()
-
         # Open the login page
         driver.get(f"{host}")
         wait_for_page_to_load(driver)
@@ -175,7 +232,6 @@ def test_testViewUserProfileSelenium():
         print("Test 2 passed!")
 
     finally:
-
         # Close the browser
         close_driver(driver)
 
@@ -217,6 +273,10 @@ def test_DownloadUvlDataset():
 
 
 # Call the test function
+
+
 test_upload_dataset()
+
+
 test_testViewUserProfileSelenium()
 test_DownloadUvlDataset()
