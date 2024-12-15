@@ -160,7 +160,8 @@ def get_num_configurations(file_id):
     hubfile = HubfileService().get_or_404(file_id)
     file_name = hubfile.name
     directory_path = "app/modules/dataset/uvl_examples"
-    file_path = os.path.join(directory_path, file_name)
+    # file_path = os.path.join(directory_path, file_name)
+    file_path = hubfile.get_path()
 
     # Initiallize the dicover metamodel
     dm = DiscoverMetamodels()
