@@ -235,6 +235,43 @@ def test_testViewUserProfileSelenium():
         # Close the browser
         close_driver(driver)
 
+
+def test_DownloadUvlDataset():
+    driver = initialize_driver()
+
+    try:
+        host = get_host_for_selenium_testing()
+
+        # Open the login page
+        driver.get(f"{host}")
+        wait_for_page_to_load(driver)
+
+        driver.find_element(By.LINK_TEXT, "Sample dataset 4").click()
+        driver.find_element(By.LINK_TEXT, "Doe, Jane").click()
+        driver.find_element(By.LINK_TEXT, "Sample dataset 2").click()
+        driver.find_element(By.ID, "btnGroupDropExport24").click()
+        driver.find_element(By.LINK_TEXT, "UVL").click()
+        driver.find_element(By.ID, "btnGroupDropExport24").click()
+        driver.find_element(By.LINK_TEXT, "Glencoe").click()
+        driver.find_element(By.ID, "btnGroupDropExport24").click()
+        driver.find_element(By.LINK_TEXT, "DIMACS").click()
+        driver.find_element(By.ID, "btnGroupDropExport24").click()
+        driver.find_element(By.LINK_TEXT, "SPLOT").click()
+        driver.find_element(By.ID, "btnGroupDropExport24").click()
+        driver.find_element(By.LINK_TEXT, "Descargar todos (ZIP)").click()
+        driver.find_element(By.ID, "btnGroupDropExport25").click()
+        driver.find_element(By.LINK_TEXT, "UVL").click()
+        driver.find_element(By.ID, "btnGroupDropExport26").click()
+        driver.find_element(By.LINK_TEXT, "Descargar todos (ZIP)").click()
+
+        print("Test 3 passed!")
+
+    finally:
+
+        # Close the browser
+        close_driver(driver)
+
+
 # Call the test function
 
 
@@ -242,3 +279,4 @@ test_upload_dataset()
 
 
 test_testViewUserProfileSelenium()
+test_DownloadUvlDataset()

@@ -13,6 +13,7 @@ class DatasetBehavior(TaskSet):
             'password': '1234'
         })
 
+        self.csrf_token = get_csrf_token(response)
         if response.status_code == 200:
             print("Login exitoso.")
             self.token = response.json().get("token", None)
@@ -82,6 +83,11 @@ class DatasetBehavior(TaskSet):
             print("Error esperado: Dataset no encontrado.")
         else:
             print("Error inesperado:", response.status_code, response.text)
+
+    @task
+    def dataset(self):
+        response = self.client.get("/dataset/upload")
+        get_csrf_token(response)
 
     def is_authenticated(self):
         """Comprueba si el login fue exitoso."""
