@@ -1,6 +1,4 @@
 from datetime import datetime
-import time
-from flask import current_app
 import pytest
 from flask.testing import FlaskClient
 from app import create_app, db
@@ -8,14 +6,10 @@ from app.modules.auth.models import User
 from app.modules.dataset.models import DataSet, DSMetaData, PublicationType
 from app.modules.profile.models import UserProfile
 from app.modules.conftest import login
-import pdb
 import unittest
 from unittest.mock import patch, MagicMock
 import os
 from app import app
-
-
-
 @pytest.fixture
 def client():
     app = create_app('testing')
@@ -77,14 +71,11 @@ def client():
             db.session.remove()
             db.drop_all()
 
-
-
 def test_edit_dataset_access_denied(client: FlaskClient):
     """Prueba para asegurar que un usuario no propietario no pueda editar un dataset."""
     # Iniciar sesión como otro usuario (no propietario del dataset)
     login_response = login(client, "user2@example.com", "1234")
     assert login_response.status_code == 200, "Login was unsuccessful."
-
     # Intentar editar el dataset
     response = client.post(
         '/dataset/1/edit',

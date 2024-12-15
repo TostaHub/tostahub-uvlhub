@@ -6,6 +6,8 @@ import time
 from core.locust.common import get_csrf_token
 
 class DatasetBehavior(TaskSet):
+
+
     def on_start(self):
 
         """Realiza el login antes de iniciar las tareas de la prueba."""
@@ -29,8 +31,6 @@ class DatasetBehavior(TaskSet):
         else:
             print("Error en el login:", response.status_code, response.text)
             self.session_cookies = None
-
-
         self.dataset()
         self.create_dataset()
         self.view_user_datasets()
@@ -54,8 +54,7 @@ class DatasetBehavior(TaskSet):
             print("Dataset editado exitosamente.")
         else:
             print("Error al editar el dataset:", response.status_code, response.text)
-
-
+            
     @task(1)
     def edit_dataset_unauthorized(self):
         """Simula un usuario no autenticado intentando editar un dataset."""

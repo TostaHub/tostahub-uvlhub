@@ -202,6 +202,20 @@ def test_upload_dataset():
         # Close the browser
         close_driver(driver)
 
+def test_testrate(self):
+        self.driver.get("http://localhost:5000/")
+        self.driver.set_window_size(1850, 1053)
+        self.driver.find_element(By.LINK_TEXT, "Title").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".nav-link:nth-child(1)").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".row:nth-child(2) > .col-md-6 > .mb-3").click()
+        self.driver.find_element(By.ID, "email").click()
+        self.driver.find_element(By.ID, "email").send_keys("user1@example.com")
+        self.driver.find_element(By.ID, "password").send_keys("1234")
+        self.driver.find_element(By.ID, "submit").click()
+        self.driver.find_element(By.LINK_TEXT, "Title").click()
+        self.driver.find_element(By.CSS_SELECTOR, "span:nth-child(5)").click()
+        self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(1) > button").click()
+
 
 def test_testViewUserProfileSelenium():
     driver = initialize_driver()
@@ -258,17 +272,5 @@ test_testViewUserProfileSelenium()
 
 
 
-    def test_testrate(self):
-        self.driver.get("http://localhost:5000/")
-        self.driver.set_window_size(1850, 1053)
-        self.driver.find_element(By.LINK_TEXT, "Title").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".nav-link:nth-child(1)").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".row:nth-child(2) > .col-md-6 > .mb-3").click()
-        self.driver.find_element(By.ID, "email").click()
-        self.driver.find_element(By.ID, "email").send_keys("user1@example.com")
-        self.driver.find_element(By.ID, "password").send_keys("1234")
-        self.driver.find_element(By.ID, "submit").click()
-        self.driver.find_element(By.LINK_TEXT, "Title").click()
-        self.driver.find_element(By.CSS_SELECTOR, "span:nth-child(5)").click()
-        self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(1) > button").click()
+    
 
