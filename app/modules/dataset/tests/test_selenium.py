@@ -12,7 +12,7 @@ from core.selenium.common import initialize_driver, close_driver
 class TestSelenium:
     def setup_method(self, method):
 
-        
+
         self.driver = webdriver.Chrome()
         self.vars = {}
 
@@ -202,10 +202,8 @@ def test_testViewUserProfileSelenium():
 
 
     driver = initialize_driver()
-
     try:
         host = get_host_for_selenium_testing()
-
         # Open the login page
         driver.get(f"{host}")
         wait_for_page_to_load(driver)
