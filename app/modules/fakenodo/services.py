@@ -25,7 +25,7 @@ class FakenodoService(BaseService):
         """
         Create a new deposition in Fakenodo
         Args:
-            dataset (Dataset): The dataset contain ing the necessary metadata
+            dataset (Dataset): The dataset containing the necessary metadata
         Returns:
             dict: JSON format with the details of the deposition
         """
@@ -56,6 +56,8 @@ class FakenodoService(BaseService):
         }
         try:
             deposition = self.deposition_repository.create_new_deposition(dep_metadata=metadataJSON)
+            print("DEPOSIIITION")
+            print(deposition)
             return {
                 "id": deposition.id,
                 "metadata": metadataJSON,

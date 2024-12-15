@@ -32,7 +32,8 @@ class ExploreRepository(BaseRepository):
         max_size_filter = None
 
         # Inicia la consulta, usando el alias en la unión
-        query = db.session.query(DataSet).join(ds_meta_data_alias, DataSet.ds_meta_data)
+        query = db.session.query(DataSet).join(ds_meta_data_alias, DataSet.ds_meta_data)\
+            .filter(DSMetaData.dataset_doi.isnot(None))
 
         # Filtrar por tipo de publicación
         if publication_type != "any":
@@ -47,38 +48,59 @@ class ExploreRepository(BaseRepository):
         # Procesar el filtro de `query_string`
         query_filter = query_string.strip()
 
-        # Filtrar por autor
-        if query_filter.startswith('author:'):
-            author_filter = query_filter[7:].strip()
-            query = query.join(author_meta_data_alias).join(Author).filter(Author.name.ilike(f'%{author_filter}%'))
+        for filter_item in query_filter.split(';'):
+            # Filtrar por autor
+            if filter_item.startswith('author:'):
+                author_filter = filter_item[7:].strip()
+                query = query.join(author_meta_data_alias).join(Author).filter(Author.name.ilike(f'%{author_filter}%'))
 
-        # Filtrar por tamaño mínimo
-        elif query_filter.startswith('min_size:'):
-            try:
-                min_size_filter = int(query_filter[9:].strip())
-            except ValueError:
-                min_size_filter = None
+            # Filtrar por tamaño mínimo
+            elif filter_item.startswith('min_size:'):
+                try:
+                    min_size_filter = int(filter_item[9:].strip())
+                except ValueError:
+                    min_size_filter = None
 
-        # Filtrar por tamaño máximo
-        elif query_filter.startswith('max_size:'):
-            try:
-                max_size_filter = int(query_filter[9:].strip())
-            except ValueError:
-                max_size_filter = None
+            # Filtrar por tamaño máximo
+            elif filter_item.startswith('max_size:'):
+                try:
+                    max_size_filter = int(filter_item[9:].strip())
+                except ValueError:
+                    max_size_filter = None
 
-        # Filtrar por etiquetas
-        elif query_filter.startswith('tags:'):
-            tags_filter = query_filter[5:].strip()
-            query = query.filter(ds_meta_data_alias.tags.ilike(f'%{tags_filter}%'))
+            # Filtrar por etiquetas
+            elif filter_item.startswith('tags:'):
+                tags_filter = filter_item[5:].strip()
+                query = query.filter(ds_meta_data_alias.tags.ilike(f'%{tags_filter}%'))
 
-        # Filtrar por título o tag(consulta general)
-        else:
-            query = query.filter(
-                or_(
-                    ds_meta_data_alias.title.ilike(f"%{query_filter}%"),
-                    ds_meta_data_alias.tags.ilike(f"%{query_filter}%")
+            # Filtrar por numero maximo de modelos
+            elif filter_item.startswith('max_models:'):
+                max_model_filter = filter_item[11:].strip()
+                max_uvl = max_model_filter
+
+            # Filtrar por numero minimo de modelos
+            elif filter_item.startswith('min_models:'):
+                min_model_filter = filter_item[11:].strip()
+                min_uvl = min_model_filter
+
+            # Filtrar por numero maximo de configuraciones
+            elif filter_item.startswith('max_configs:'):
+                max_config_filter = filter_item[12:].strip()
+                max_num_configurations = max_config_filter
+
+            # Filtrar por numero minimo de configuraciones
+            elif filter_item.startswith('min_configs:'):
+                min_config_filter = filter_item[12:].strip()
+                min_num_configurations = min_config_filter
+
+            # Filtrar por título o tag(consulta general)
+            else:
+                query = query.filter(
+                    or_(
+                        ds_meta_data_alias.title.ilike(f"%{filter_item}%"),
+                        ds_meta_data_alias.tags.ilike(f"%{filter_item}%")
+                    )
                 )
-            )
 
         date_format = '%Y-%m-%d'
         if start_date:
@@ -94,12 +116,6 @@ class ExploreRepository(BaseRepository):
         # Realizamos la unión con Hubfile a través de FeatureModel
         query = query.join(FeatureModel, FeatureModel.data_set_id == DataSet.id)  # Unión con FeatureModel
         query = query.join(Hubfile, Hubfile.feature_model_id == FeatureModel.id)  # Unión con Hubfile
-
-        if min_uvl.isdigit():
-            query = query.group_by(DataSet.id).having(func.count(Hubfile.id) >= int(min_uvl))
-
-        if max_uvl.isdigit():
-            query = query.group_by(DataSet.id).having(func.count(Hubfile.id) <= int(max_uvl))
 
         # Ordenar resultados
         if sorting == "oldest":
@@ -130,6 +146,12 @@ class ExploreRepository(BaseRepository):
                 )
             ]
 
+        if min_uvl.isdigit() or max_uvl.isdigit():
+            results = [
+                ds for ds in results
+                if num_uvls_between(ds, min_uvl, max_uvl)
+            ]
+
         if min_num_configurations.isdigit() or max_num_configurations.isdigit():
             results = [
                 ds for ds in results
@@ -143,6 +165,17 @@ class ExploreRepository(BaseRepository):
             ]
 
         return results
+
+
+def num_uvls_between(dataset, min_num, max_num):
+    num = dataset.get_files_count()
+    valid_min = min_num.isdigit()
+    valid_max = max_num.isdigit()
+    if valid_min and valid_max:
+        return num >= int(min_num) and num <= int(max_num)
+    else:
+        return (valid_min and num >= int(min_num)
+                or valid_max and num <= int(max_num))
 
 
 def num_configurations_between(file_id, min_num_configurations, max_num_configurations):

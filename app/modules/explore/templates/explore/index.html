@@ -47,9 +47,10 @@
 
                         <div class="col-12">
                             <div class="mb-3">
-                                <label class="form-label" for="query">
-                                    Search for datasets by title, description, authors, tags, UVL files...
-                                </label>
+                                    <label class="form-label" for="query">
+                                        Search for datasets by title and tags or use advanced search querys
+                                        <span class="info-icon" data-tooltip="Types of queries allowed:&#10;author:&#10;min_size:&#10;max_size:&#10;tags:&#10;max_models:&#10;min_models:&#10;max_configs:&#10;min_configs:&#10;For multiple querys use ; Example: author:2;min_size:5">i</span>
+                                    </label>
                                 <input class="form-control" id="query" name="query" required="" type="text"
                                        value="" autofocus>
                             </div>
@@ -207,4 +208,46 @@
 
 {% block scripts %}
     <script src="{{ url_for('explore.scripts') }}"></script>
+    
+    <style>
+        .info-icon {
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            background-color: #4caf50;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 5px;
+            position: relative;
+        }
+
+        .info-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #add8e6;
+            color: #333;
+            font-size: 12px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 10;
+            transition: opacity 0.3s;
+            width: 200px;
+        }
+
+        .info-icon:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
 {% endblock %}
