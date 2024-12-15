@@ -11,10 +11,9 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 
+
 @pytest.fixture
 def client():
-
-
     app = create_app('testing')
     with app.test_client() as client:
         with app.app_context():
@@ -74,9 +73,8 @@ def client():
             db.session.remove()
             db.drop_all()
 
+
 def test_edit_dataset_access_denied(client: FlaskClient):
-
-
     """Prueba para asegurar que un usuario no propietario no pueda editar un dataset."""
     # Iniciar sesión como otro usuario (no propietario del dataset)
     login_response = login(client, "user2@example.com", "1234")
@@ -91,10 +89,9 @@ def test_edit_dataset_access_denied(client: FlaskClient):
         }
     )
     assert response.status_code == 403, "El código de estado debería ser 403 para usuarios no autorizados."
+    
 
 def test_edit_dataset_invalid_form(client: FlaskClient):
-
-
     """Prueba para un formulario inválido."""
     # Iniciar sesión como propietario del dataset
     login_response = login(client, "user1@example.com", "1234")
@@ -111,9 +108,8 @@ def test_edit_dataset_invalid_form(client: FlaskClient):
     )
     assert response.status_code == 200, "El código de estado debería ser 200 al mostrar los errores del formulario."
 
+
 def test_edit_dataset_not_found(client: FlaskClient):
-
-
     """Prueba para intentar editar un dataset inexistente."""
     # Iniciar sesión como usuario válido
     login_response = login(client, "user1@example.com", "1234")
@@ -123,12 +119,9 @@ def test_edit_dataset_not_found(client: FlaskClient):
     response = client.get('/dataset/999/edit')
     assert response.status_code == 404, "El código de estado debería ser 404 para un dataset inexistente."
 
+
 class TestDownloadAllFormats(unittest.TestCase):
-
-
     def setUp(self):
-
-
         # Configura una instancia de la aplicación para pruebas
         self.app = app.test_client()
         self.app.testing = True
@@ -146,8 +139,6 @@ class TestDownloadAllFormats(unittest.TestCase):
         mock_generate_glencoe,
         mock_generate_uvl
     ):
-        
-
         # Mockear las rutas de los archivos generados
         mock_generate_uvl.return_value = '/tmp/file.uvl'
         mock_generate_glencoe.return_value = '/tmp/file_glencoe.json'
@@ -201,8 +192,6 @@ class TestDownloadAllFormats(unittest.TestCase):
         mock_generate_glencoe,
         mock_generate_uvl
     ):
-        
-        
         # Simular que una de las funciones de generación lanza un error
         mock_generate_uvl.side_effect = RuntimeError("UVL generation failed")
         mock_generate_glencoe.return_value = '/tmp/file_glencoe.json'
@@ -222,7 +211,6 @@ class TestDownloadAllFormats(unittest.TestCase):
         mock_generate_cnf.assert_not_called()
         mock_generate_splot.assert_not_called()
 
+
 if __name__ == '__main__':
-
-
     unittest.main()

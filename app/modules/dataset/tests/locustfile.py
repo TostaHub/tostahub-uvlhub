@@ -4,9 +4,8 @@ from locust import HttpUser, TaskSet, task
 from core.environment.host import get_host_for_locust_testing
 import time
 
+
 class DatasetBehavior(TaskSet):
-
-
     def on_start(self):
         """Realiza el login antes de iniciar las tareas de la prueba."""
         response = self.client.post('/login', json={
@@ -163,9 +162,8 @@ class DatasetBehavior(TaskSet):
             if response.status_code != 200 or "No datasets found" in response.text:
                 response.failure("Failed to load datasets page")
 
-class DatasetUser(HttpUser):
 
-    
+class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]
     min_wait = 5000  # Tiempo de espera mínimo en milisegundos (5 segundos)
     max_wait = 9000  # Tiempo de espera máximo en milisegundos (9 segundos)

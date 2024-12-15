@@ -9,21 +9,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from core.environment.host import get_host_for_selenium_testing
 from core.selenium.common import initialize_driver, close_driver
 
+
 class TestSelenium:
     def setup_method(self, method):
-
-
         self.driver = webdriver.Chrome()
         self.vars = {}
 
     def teardown_method(self, method):
-
-
         self.driver.quit()
 
     def test_testselenium(self):
-
-
         self.driver.get("http://127.0.0.1:5000/")
         self.driver.set_window_size(1850, 1053)
         self.driver.find_element(By.CSS_SELECTOR, ".nav-link:nth-child(1)").click()
@@ -35,7 +30,8 @@ class TestSelenium:
         self.driver.find_element(By.ID, "password").send_keys("1234")
         self.driver.find_element(By.ID, "submit").click()
         self.driver.find_element(By.LINK_TEXT, "My datasets").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".card-body:nth-child(1) > .table tr:nth-child(2) > td:nth-child(1)").click()
+        self.driver.find_element(By.CSS_SELECTOR, 
+                                 ".card-body:nth-child(1)>.table tr:nth-child(2)>td:nth-child(1)").click()
         self.driver.find_element(By.LINK_TEXT, "ffffddccdd").click()
         self.driver.find_element(By.LINK_TEXT, "Edit Dataset").click()
         self.driver.find_element(By.ID, "title").click()
@@ -74,28 +70,24 @@ class TestSelenium:
         self.driver.find_element(By.CSS_SELECTOR, "button").click()
         self.driver.find_element(By.CSS_SELECTOR, ".sidebar-item:nth-child(7) .align-middle:nth-child(2)").click()
 
+
 def wait_for_page_to_load(driver, timeout=4):
-
-
     WebDriverWait(driver, timeout).until(
         lambda driver: driver.execute_script("return document.readyState") == "complete"
     )
 
+
 def count_datasets(driver, host):
-
-
     driver.get(f"{host}/dataset/list")
     wait_for_page_to_load(driver)
-
     try:
         amount_datasets = len(driver.find_elements(By.XPATH, "//table//tbody//tr"))
     except Exception:
         amount_datasets = 0
     return amount_datasets
 
+
 def test_upload_dataset():
-
-
     driver = initialize_driver()
 
     try:
@@ -198,9 +190,8 @@ def test_upload_dataset():
         # Close the browser
         close_driver(driver)
 
+
 def test_testViewUserProfileSelenium():
-
-
     driver = initialize_driver()
     try:
         host = get_host_for_selenium_testing()
@@ -245,5 +236,9 @@ def test_testViewUserProfileSelenium():
         close_driver(driver)
 
 # Call the test function
+
+
 test_upload_dataset()
+
+
 test_testViewUserProfileSelenium()
