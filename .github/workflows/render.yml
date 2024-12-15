@@ -1,0 +1,100 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+
+  testing:
+
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: uvlhub_root_password
+          MYSQL_DATABASE: uvlhubdb_test
+          MYSQL_USER: uvlhub_user
+          MYSQL_PASSWORD: uvlhub_password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Tests
+      env:
+        FLASK_ENV: testing
+        MARIADB_HOSTNAME: 127.0.0.1
+        MARIADB_PORT: 3306
+        MARIADB_TEST_DATABASE: uvlhubdb_test
+        MARIADB_USER: uvlhub_user
+        MARIADB_PASSWORD: uvlhub_password
+      run: |
+        pytest app/modules/ --ignore-glob='*selenium*'
+
+  deploy:
+    name: Deploy to Render
+    needs: testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render (Develop)
+        if: github.ref_name == 'develop'
+        env:
+          deploy_url: ${{ secrets.RENDER_DEPLOY_DEVELOP_HOOK_URL }}
+        run: |
+          curl "$deploy_url"
+  
+      - name: Deploy to Server (Main)
+        if: github.ref_name == 'main'
+        env:
+          deploy_url: ${{ secrets.SERVER_DEPLOY_HOOK_URL }}
+          token: ${{ secrets.SERVER_DEPLOY_TOKEN }}
+        run: |
+          output=$(curl -X POST "$deploy_url" -H "Authorization: ${token}")
+          if echo "$output" | grep -q "Error occurred while executing the hook's command"; then
+            echo "Deployment failed due to hook error. Exiting."
+            exit 1
+          fi
+
+      - name: Monitor Develop Deployment Status
+        if: github.ref_name == 'develop'
+        env:
+          API_KEY: ${{ secrets.RENDER_DEVELOP_API_KEY }}
+          SERVICE_ID: ${{ secrets.RENDER_DEVELOP_SERVICE_ID }}
+        run: |
+          STATUS=""
+          while [ "$STATUS" != "live" ]; do
+            DEPLOY_DATA=$(curl -s -H "Authorization: Bearer $API_KEY" \
+              "https://api.render.com/v1/services/$SERVICE_ID/deploys" | jq '.[0]')
+  
+            STATUS=$(echo "$DEPLOY_DATA" | jq -r '.deploy.status')
+  
+            if [[ "$STATUS" == "build_failed" || "$STATUS" == "update_failed" || "$STATUS" == "canceled" || "$STATUS" == "pre_deploy_failed" ]]; then
+              echo "Deployment failed with status: $STATUS"
+              exit 1
+            fi
+  
+            echo "Current status: $STATUS"
+            sleep 10
+          done
+  
+          echo "Deployment is live!"
+  

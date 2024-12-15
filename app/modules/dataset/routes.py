@@ -1,45 +1,38 @@
+import json
 import logging
 import os
-import json
 import shutil
 import tempfile
 import uuid
+import io
+import zipfile
 from datetime import datetime, timezone
 from zipfile import ZipFile
-from app.modules.dataset.forms import EditDatasetForm
-from flask import abort
-from flask_login import current_user
 
 
-
-from flask import (
-    flash,
-    redirect,
-    render_template,
-    request,
-    jsonify,
-    send_from_directory,
-    make_response,
-    abort,
-    url_for,
-)
-from flask_login import login_required, current_user
-
-from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import (
-    DSDownloadRecord,
-    PublicationType
-)
+from flask import (abort, jsonify, make_response, render_template, send_file,
+                   request, send_from_directory, url_for, flash, redirect)
+from flask_login import current_user, login_required
 from app.modules.dataset import dataset_bp
+from app.modules.dataset.forms import DataSetForm
+from app.modules.dataset.models import DSDownloadRecord, PublicationType
 from app.modules.dataset.services import (
     AuthorService,
     DSDownloadRecordService,
     DSMetaDataService,
     DSViewRecordService,
     DataSetService,
-    DOIMappingService
+    DOIMappingService,
+    DSRatingService
 )
+from app.modules.fakenodo.services import FakenodoService
+from app.modules.dataset.forms import EditDatasetForm
+from werkzeug.exceptions import NotFound
+from app.modules.hubfile.services import HubfileService
+from flamapy.metamodels.fm_metamodel.transformations import UVLReader, GlencoeWriter, SPLOTWriter, UVLWriter
+from flamapy.metamodels.pysat_metamodel.transformations import FmToPysat, DimacsWriter
 from app.modules.zenodo.services import ZenodoService
+from core.configuration.configuration import USE_FAKENODE
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +40,10 @@ logger = logging.getLogger(__name__)
 dataset_service = DataSetService()
 author_service = AuthorService()
 dsmetadata_service = DSMetaDataService()
-zenodo_service = ZenodoService()
+nodo_service = FakenodoService() if USE_FAKENODE else ZenodoService()
 doi_mapping_service = DOIMappingService()
 ds_view_record_service = DSViewRecordService()
+ds_rating_service = DSRatingService()
 
 
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
@@ -72,36 +66,37 @@ def create_dataset():
             logger.exception(f"Exception while create dataset data in local {exc}")
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
 
-        # send dataset as deposition to Zenodo
+        # send dataset as deposition to Zenodo/Fakenodo
         data = {}
+        nodo = "Fakenodo" if USE_FAKENODE else "Zenodo"
         try:
-            zenodo_response_json = zenodo_service.create_new_deposition(dataset)
-            response_data = json.dumps(zenodo_response_json)
+            nodo_response_json = nodo_service.create_new_deposition(dataset)
+            response_data = json.dumps(nodo_response_json)
             data = json.loads(response_data)
         except Exception as exc:
             data = {}
-            zenodo_response_json = {}
-            logger.exception(f"Exception while create dataset data in Zenodo {exc}")
+            nodo_response_json = {}
+            logger.exception(f"Exception while create dataset data in {nodo} {exc}")
 
         if data.get("conceptrecid"):
             deposition_id = data.get("id")
 
-            # update dataset with deposition id in Zenodo
+            # update dataset with deposition id in Zenodo/Fakenodo
             dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
 
             try:
-                # iterate for each feature model (one feature model = one request to Zenodo)
+                # iterate for each feature model (one feature model = one request to Zenodo/Fakenodo)
                 for feature_model in dataset.feature_models:
-                    zenodo_service.upload_file(dataset, deposition_id, feature_model)
+                    nodo_service.upload_file(dataset, deposition_id, feature_model)
 
                 # publish deposition
-                zenodo_service.publish_deposition(deposition_id)
+                nodo_service.publish_deposition(deposition_id)
 
                 # update DOI
-                deposition_doi = zenodo_service.get_doi(deposition_id)
+                deposition_doi = nodo_service.get_doi(deposition_id)
                 dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
             except Exception as e:
-                msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
+                msg = f"it has not been possible upload feature models in {nodo} and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
 
         # Delete temp folder
@@ -112,7 +107,7 @@ def create_dataset():
         msg = "Everything works!"
         return jsonify({"message": msg}), 200
 
-    return render_template("dataset/upload_dataset.html", form=form)
+    return render_template("dataset/upload_dataset.html", form=form, use_fakenodo=USE_FAKENODE)
 
 
 @dataset_bp.route("/dataset/list", methods=["GET", "POST"])
@@ -122,6 +117,15 @@ def list_dataset():
         "dataset/list_datasets.html",
         datasets=dataset_service.get_synchronized(current_user.id),
         local_datasets=dataset_service.get_unsynchronized(current_user.id),
+    )
+
+
+@dataset_bp.route("/api/v1/datasets/user/<int:user_id>", methods=["GET"])
+def user_dataset(user_id):
+    return render_template(
+        "dataset/user_datasets.html",
+        datasets=dataset_service.get_synchronized(user_id),
+        local_datasets=dataset_service.get_unsynchronized(user_id),
     )
 
 
@@ -248,6 +252,115 @@ def download_dataset(dataset_id):
     return resp
 
 
+def generate_glencoe_file(file_id):
+    temp_file = tempfile.NamedTemporaryFile(suffix='.json', delete=False)
+    try:
+        hubfile = HubfileService().get_or_404(file_id)
+        file_name = hubfile.name
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
+
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+
+        fm1 = UVLReader(file_path).transform()
+        GlencoeWriter(temp_file.name, fm1).transform()
+        return temp_file.name  # Retorna la ruta del archivo generado
+    except Exception as e:
+        raise RuntimeError(f"Error generating Glencoe file: {e}")
+
+
+def generate_splot_file(file_id):
+    temp_file = tempfile.NamedTemporaryFile(suffix='.splx', delete=False)
+    try:
+        hubfile = HubfileService().get_by_id(file_id)
+        file_name = hubfile.name
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
+
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+
+        fm = UVLReader(file_path).transform()
+        SPLOTWriter(temp_file.name, fm).transform()
+        return temp_file.name  # Retorna la ruta del archivo generado
+    except Exception as e:
+        raise RuntimeError(f"Error generating SPLOT file: {e}")
+
+
+def generate_cnf_file(file_id):
+    temp_file = tempfile.NamedTemporaryFile(suffix='.cnf', delete=False)
+    try:
+        hubfile = HubfileService().get_by_id(file_id)
+        file_name = hubfile.name
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
+
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+
+        fm = UVLReader(file_path).transform()
+        sat = FmToPysat(fm).transform()
+        DimacsWriter(temp_file.name, sat).transform()
+        return temp_file.name  # Retorna la ruta del archivo generado
+    except Exception as e:
+        raise RuntimeError(f"Error generating DIMACS file: {e}")
+
+
+def generate_uvl_file(file_id):
+    temp_file = tempfile.NamedTemporaryFile(suffix='.uvl', delete=False)
+    try:
+        hubfile = HubfileService().get_by_id(file_id)
+        file_name = hubfile.name
+        directory_path = "app/modules/dataset/uvl_examples"
+        file_path = os.path.join(directory_path, file_name)
+
+        if not os.path.isfile(file_path):
+            raise NotFound(f"File {file_name} not found")
+
+        fm = UVLReader(file_path).transform()
+        UVLWriter(temp_file.name, fm).transform()
+        return temp_file.name  # Retorna la ruta del archivo generado
+    except Exception as e:
+        raise RuntimeError(f"Error generating UVL file: {e}")
+
+
+@dataset_bp.route('/download_all/<int:file_id>')
+def download_all_formats(file_id):
+    try:
+        # Generar los archivos
+        uvl_path = generate_uvl_file(file_id)
+        glencoe_path = generate_glencoe_file(file_id)
+        dimacs_path = generate_cnf_file(file_id)
+        splot_path = generate_splot_file(file_id)
+
+        # Crear un archivo ZIP en memoria
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            zf.write(uvl_path, os.path.basename(uvl_path))
+            zf.write(glencoe_path, os.path.basename(glencoe_path))
+            zf.write(dimacs_path, os.path.basename(dimacs_path))
+            zf.write(splot_path, os.path.basename(splot_path))
+
+        memory_file.seek(0)
+
+        # Eliminar archivos temporales
+        os.remove(uvl_path)
+        os.remove(glencoe_path)
+        os.remove(dimacs_path)
+        os.remove(splot_path)
+
+        # Devolver archivo ZIP como respuesta
+        return send_file(
+            memory_file,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name=f"files_{file_id}.zip"
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @dataset_bp.route("/doi/<path:doi>/", methods=["GET"])
 def subdomain_index(doi):
 
@@ -291,11 +404,9 @@ def get_unsynchronized_dataset(dataset_id):
 def view_dataset(dataset_id):
     # Obtén el dataset por su ID
     dataset = dataset_service.get_or_404(dataset_id)
-    
+
     # Renderiza la plantilla con los datos del dataset
     return render_template("dataset/view_dataset.html", dataset=dataset)
-
-
 
 
 @dataset_bp.route('/dataset/<int:dataset_id>/edit', methods=['GET', 'POST'])
@@ -335,3 +446,18 @@ def edit_dataset(dataset_id):
 
     return render_template('dataset/edit_dataset.html', form=form, dataset=dataset)
 
+
+@dataset_bp.route("/datasets/<int:dataset_id>/rate", methods=["POST"])
+@login_required
+def rate_dataset(dataset_id):
+    user_id = current_user.id
+    rating_value = request.json.get('rating')
+    rating = ds_rating_service.add_or_update_rating(dataset_id, user_id, rating_value)
+    return jsonify({'message': 'Rating added', 'rating': rating.to_dict()}), 200
+
+
+@dataset_bp.route('/datasets/<int:dataset_id>/average-rating', methods=['GET'])
+@login_required
+def get_dataset_average_rating(dataset_id):
+    average_rating = ds_rating_service.get_dataset_average_rating(dataset_id)
+    return jsonify({'average_rating': average_rating}), 200

@@ -5,6 +5,7 @@ from wtforms.validators import DataRequired, URL, Optional
 
 from app.modules.dataset.models import PublicationType
 
+
 class EditDatasetForm(FlaskForm):
     title = TextAreaField('Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
@@ -12,7 +13,7 @@ class EditDatasetForm(FlaskForm):
         'Publication Type',
         choices=[(choice.name, choice.value) for choice in PublicationType],  # Cargamos las opciones del Enum
         validators=[DataRequired()]
-    ) 
+    )
     tags = StringField('Tags')  # Agregamos el campo 'tags' para poder editarlo
 
 
