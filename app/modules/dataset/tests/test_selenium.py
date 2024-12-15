@@ -30,7 +30,7 @@ class TestSelenium:
         self.driver.find_element(By.ID, "password").send_keys("1234")
         self.driver.find_element(By.ID, "submit").click()
         self.driver.find_element(By.LINK_TEXT, "My datasets").click()
-        self.driver.find_element(By.CSS_SELECTOR, 
+        self.driver.find_element(By.CSS_SELECTOR,
                                  ".card-body:nth-child(1)>.table tr:nth-child(2)>td:nth-child(1)").click()
         self.driver.find_element(By.LINK_TEXT, "ffffddccdd").click()
         self.driver.find_element(By.LINK_TEXT, "Edit Dataset").click()

@@ -89,7 +89,7 @@ def test_edit_dataset_access_denied(client: FlaskClient):
         }
     )
     assert response.status_code == 403, "El código de estado debería ser 403 para usuarios no autorizados."
-    
+
 
 def test_edit_dataset_invalid_form(client: FlaskClient):
     """Prueba para un formulario inválido."""
