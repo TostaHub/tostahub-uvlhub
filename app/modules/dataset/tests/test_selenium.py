@@ -1,5 +1,4 @@
 import os
-import json
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -7,7 +6,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from core.environment.host import get_host_for_selenium_testing
 from core.selenium.common import initialize_driver, close_driver
 
@@ -231,7 +229,6 @@ def test_testViewUserProfileSelenium():
         print("Test 2 passed!")
 
     finally:
-
         # Close the browser
         close_driver(driver)
 
