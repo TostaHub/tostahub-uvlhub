@@ -3,13 +3,10 @@ from core.locust.common import get_csrf_token
 from locust import HttpUser, TaskSet, task
 from core.environment.host import get_host_for_locust_testing
 import time
-from core.locust.common import get_csrf_token
 
 class DatasetBehavior(TaskSet):
 
-
     def on_start(self):
-
         """Realiza el login antes de iniciar las tareas de la prueba."""
         response = self.client.post('/login', json={
             'email': 'user1@example.com',
@@ -26,11 +23,11 @@ class DatasetBehavior(TaskSet):
         self.csrf_token = get_csrf_token(response)
         if response.status_code == 200:
             print("Login exitoso.")
-
             self.session_cookies = response.cookies
         else:
             print("Error en el login:", response.status_code, response.text)
             self.session_cookies = None
+
         self.dataset()
         self.create_dataset()
         self.view_user_datasets()
@@ -54,7 +51,7 @@ class DatasetBehavior(TaskSet):
             print("Dataset editado exitosamente.")
         else:
             print("Error al editar el dataset:", response.status_code, response.text)
-            
+
     @task(1)
     def edit_dataset_unauthorized(self):
         """Simula un usuario no autenticado intentando editar un dataset."""
@@ -143,7 +140,6 @@ class DatasetBehavior(TaskSet):
             "description": "This is a test dataset created during load testing.",
             "publication_type": "Open Access",
             "_csrf_token": self.csrf_token
-
         }
         with self.client.post(
             "/dataset/upload",
@@ -165,7 +161,6 @@ class DatasetBehavior(TaskSet):
         ) as response:
             if response.status_code != 200 or "No datasets found" in response.text:
                 response.failure("Failed to load datasets page")
-
 
 class DatasetUser(HttpUser):
     tasks = [DatasetBehavior]

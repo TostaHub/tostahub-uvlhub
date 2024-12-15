@@ -9,7 +9,7 @@ from app.modules.conftest import login
 import unittest
 from unittest.mock import patch, MagicMock
 import os
-from app import app
+
 @pytest.fixture
 def client():
     app = create_app('testing')
@@ -87,7 +87,6 @@ def test_edit_dataset_access_denied(client: FlaskClient):
     )
     assert response.status_code == 403, "El código de estado debería ser 403 para usuarios no autorizados."
 
-
 def test_edit_dataset_invalid_form(client: FlaskClient):
     """Prueba para un formulario inválido."""
     # Iniciar sesión como propietario del dataset
@@ -104,7 +103,6 @@ def test_edit_dataset_invalid_form(client: FlaskClient):
         }
     )
     assert response.status_code == 200, "El código de estado debería ser 200 al mostrar los errores del formulario."
-
 
 def test_edit_dataset_not_found(client: FlaskClient):
     """Prueba para intentar editar un dataset inexistente."""
@@ -207,7 +205,6 @@ class TestDownloadAllFormats(unittest.TestCase):
         mock_generate_glencoe.assert_not_called()
         mock_generate_cnf.assert_not_called()
         mock_generate_splot.assert_not_called()
-
 
 if __name__ == '__main__':
     unittest.main()
