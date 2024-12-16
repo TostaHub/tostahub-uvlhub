@@ -78,6 +78,16 @@ class TestTest1():
 
         submit_button = self.driver.find_element(By.ID, "submit")
         submit_button.click()
+        # Esperar y hacer clic en "Description for dataset 3"
+        dataset_link = WebDriverWait(self.driver, 30).until(
+            EC.element_to_be_clickable((By.LINK_TEXT, "My datasets"))
+        )
+        dataset_link.click()
+        # Rellenar el formulario de edición
+        dataset_link = WebDriverWait(self.driver, 30).until(
+            EC.element_to_be_clickable((By.LINK_TEXT, "Description for dataset 3"))
+        )
+        dataset_link.click()
         edit_link = WebDriverWait(self.driver, 30).until(
             EC.element_to_be_clickable((By.LINK_TEXT, "Edit Dataset"))
         )
